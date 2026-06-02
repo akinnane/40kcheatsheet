@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warhammer 40,000 (11th Ed) Master Reference</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/viz.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/viz.js/2.1.2/full.render.js"></script>
+    <script src="probability.js"></script>
+
+    <style>
+        body { font-family: 'Helvetica', sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
+        h1, h2, h3, h4 { color: #2c3e50; }
+        .subtitle { color: #666; font-size: 1.1em; margin-top: -0.5em; margin-bottom: 1.5em; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .panel { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .pdf-ref { font-size: 0.85em; color: #888; font-weight: normal; }
+        .footer { text-align: center; font-size: 0.9em; color: #666; margin-top: 30px; padding: 15px; }
+        .footer a { color: #3498db; }
+
+        .tab-buttons { display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-buttons button { padding: 10px 14px; cursor: pointer; background: #e0e0e0; border: none; border-radius: 4px; font-weight: bold; font-size: 13px; transition: 0.2s; }
+        .tab-buttons button:hover { background: #d0d0d0; }
+        .tab-buttons button.active { background: #3498db; color: white; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; vertical-align: top; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr.search-hidden { display: none; }
+        .keyword { font-weight: bold; color: #c0392b; }
+
+        .bg-legend-active { background-color: lightblue; }
+        .bg-legend-opponent { background-color: lightcoral; }
+        .bg-legend-both { background-color: lightgoldenrodyellow; }
+        .bg-legend-rule { background-color: lavenderblush; }
+
+        .prob-high { background-color: #d4edda; color: #155724; font-weight: bold; }
+        .prob-mid { background-color: #fff3cd; color: #856404; font-weight: bold; }
+        .prob-low { background-color: #f8d7da; color: #721c24; font-weight: bold; }
+
+        .phase-tables { display: none; }
+        .phase-tables.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        #graph-container, .graph-container { width: 100%; overflow-x: auto; text-align: center; padding: 15px; background: white; border: 1px dashed #ccc; margin-bottom: 20px; min-height: 120px; }
+        #graph-target-selection { display: none; }
+        #graph-target-selection.visible { display: block; }
+
+        .search-bar { margin-bottom: 15px; }
+        .search-bar input { width: 100%; max-width: 400px; padding: 10px 14px; font-size: 14px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+        .mistakes { border-left: 4px solid #e74c3c; background: #fdf2f2; }
+        .mistakes li { margin-bottom: 6px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+        .active-player-box { background: #e8f4fc; border: 1px solid #3498db; padding: 12px; border-radius: 4px; margin-bottom: 15px; font-size: 14px; }
+
+        .prob-panel { background: #f8fafb; border: 1px solid #d0dce6; border-radius: 6px; padding: 16px 18px; margin-top: 20px; }
+        .prob-panel h3 { margin-top: 0; }
+        .prob-panel h4 { margin: 14px 0 8px; font-size: 1em; color: #34495e; }
+        .prob-note { font-size: 13px; color: #666; margin: 0 0 12px; }
+        .prob-matrix-wrap { overflow-x: auto; margin-bottom: 12px; }
+        .prob-matrix { font-size: 12px; width: auto; min-width: 100%; }
+        .prob-matrix th, .prob-matrix td { padding: 6px 8px; text-align: center; white-space: nowrap; }
+        .prob-matrix th:first-child, .prob-matrix td:first-child { text-align: left; position: sticky; left: 0; background: inherit; z-index: 1; }
+        .prob-matrix tr:nth-child(even) td:first-child { background: #f9f9f9; }
+        .prob-matrix tr:nth-child(odd) td:first-child { background: white; }
+        .prob-matrix th:first-child { background: #2c3e50; z-index: 2; }
+
+        .flowchart-desc { background: #f0f6fb; border: 1px solid #c5d9ea; border-left: 4px solid #3498db; border-radius: 6px; padding: 18px 22px; margin-bottom: 20px; font-size: 14px; line-height: 1.55; }
+        .flowchart-desc h2 { margin: 0 0 10px; font-size: 1.15em; }
+        .flowchart-desc h3 { margin: 18px 0 8px; font-size: 1em; color: #34495e; }
+        .flowchart-desc h3:first-of-type { margin-top: 0; }
+        .flowchart-desc p { margin: 0 0 10px; }
+        .flowchart-desc ol { margin: 8px 0 12px; padding-left: 1.4em; }
+        .flowchart-desc ol li { margin-bottom: 8px; }
+        .flowchart-desc ul { margin: 6px 0 10px; padding-left: 1.4em; }
+        .flowchart-desc ul li { margin-bottom: 4px; }
+        .flowchart-desc .branch { margin: 6px 0 6px 1em; padding-left: 12px; border-left: 2px solid #bdc3c7; }
+        .flowchart-desc .branch-yes { border-left-color: #27ae60; }
+        .flowchart-desc .branch-no { border-left-color: #e74c3c; }
+
+        .phase-subnav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; font-size: 13px; }
+        .phase-subnav a { color: #3498db; text-decoration: none; padding: 4px 10px; border: 1px solid #c5d9ea; border-radius: 4px; background: #fff; }
+        .phase-subnav a:hover { background: #e8f4fc; }
+        .search-hidden-block { display: none !important; }
+        #legend-panel { transition: opacity 0.2s; }
+        #legend-panel.hidden { display: none; }
+        .phase-tables.search-tab-hidden { display: none !important; }
+        table.search-hidden-block { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Warhammer 40,000 (11th Ed) Master Reference</h1>
+    <p class="subtitle">Core Rules reference · 11th Edition</p>
+
+    <div class="search-bar">
+        <input type="text" id="rules-search" placeholder="Search keywords, stratagems, rules…" aria-label="Search rules">
+    </div>
+
+    <div class="tab-buttons">
+        <button id="btn-main" class="active" onclick="switchTab('main')">Master Loop</button>
+        <button id="btn-cmd" onclick="switchTab('cmd')">Command</button>
+        <button id="btn-mov" onclick="switchTab('mov')">Movement</button>
+        <button id="btn-sht" onclick="switchTab('sht')">Shooting</button>
+        <button id="btn-chg" onclick="switchTab('chg')">Charge</button>
+        <button id="btn-fgt" onclick="switchTab('fgt')">Fight</button>
+        <button id="btn-end" onclick="switchTab('end')">End Turn</button>
+        <button id="btn-obj" onclick="switchTab('obj')">Objectives &amp; Stratagems</button>
+        <button id="btn-adv" onclick="switchTab('adv')">Advanced</button>
+        <button id="btn-prob" onclick="switchTab('prob')">Probability</button>
+        <button id="btn-ref" onclick="switchTab('ref')">Reference</button>
+    </div>
+
+    <div class="panel" id="legend-panel">
+        <h3>Legend</h3>
+        <table>
+            <tr><th>Symbol/Color</th><th>Meaning</th></tr>
+            <tr><td class="bg-legend-active">Blue</td><td>Active Player controls the sequence</td></tr>
+            <tr><td class="bg-legend-opponent">Red</td><td>Opposing Player controls the sequence</td></tr>
+            <tr><td class="bg-legend-both">Yellow</td><td>Players alternate or both must act</td></tr>
+            <tr><td class="bg-legend-rule">Purple/Pink</td><td>Line of Sight / Rule Check / Dice Roll</td></tr>
+        </table>
+    </div>
+
+    <div id="graph-container"><i>Loading flowchart…</i></div>
+    <div class="graph-container" id="graph-target-selection"><i>Target Selection flowchart</i></div>
+
+    <!-- MAIN -->
+    <div id="tables-main" class="phase-tables active">
+        <nav class="phase-subnav" aria-label="Master Loop sections">
+            <a href="#main-walkthrough">Walkthrough</a>
+            <a href="#main-rules">Pre-game rules</a>
+            <a href="#main-mistakes">Common mistakes</a>
+        </nav>
+        <div class="flowchart-desc" id="main-walkthrough">
+            <h2>Master Loop — walkthrough <span class="pdf-ref">(07)</span></h2>
+            <p>This chart is the outer skeleton of a battle: how battle rounds, player turns, and scoring steps repeat until the game ends. Read it top to bottom; yellow diamonds are forks that loop back or exit.</p>
+            <ol>
+                <li><b>Start of Battle Round</b> (green hexagon) — A new battle round begins. Battle Round 1 starts here with no prior end-of-round step. From round 2 onward, you arrive here only <em>after</em> the previous round’s <b>End of Battle Round</b> step has finished.</li>
+                <li><b>Resolve Army/Faction Rules</b> — Both players apply army-wide or faction rules that trigger at round start (e.g. Oaths of Moment, Strands of Fate). These sit outside the core phase sequence but must be resolved before anyone takes a turn.</li>
+                <li><b>Start of Turn Step</b> — The active player resolves all <b>start-of-turn</b> abilities and mission rules that fire when a player is about to act <span class="pdf-ref">(07.02)</span>.</li>
+                <li><b>Active Player Turn</b> — The active player runs the full turn in order: <b>Command → Movement → Shooting → Charge → Fight</b>. Each phase has its own tab and flowchart in this reference.</li>
+                <li><b>End of Player Turn</b> — Resolve end-of-turn rules and mission scoring for this player’s turn <span class="pdf-ref">(07.04)</span>. OC/VP may also be checked at end of each phase during the turn <span class="pdf-ref">(14.04)</span>.</li>
+                <li><b>Has the opposing player taken their turn?</b> (yellow diamond)
+                    <div class="branch branch-no"><b>No</b> — The opponent has not yet acted this round. Loop back to <b>Start of Turn Step</b> with the other player as active. Player 1 always starts Battle Round 1; turns strictly alternate within a round.</div>
+                    <div class="branch branch-yes"><b>Yes</b> — Both players have completed one turn. Proceed to end the battle round.</div>
+                </li>
+                <li><b>End of Battle Round</b> (green hexagon) — Both turns are done. Resolve end-of-round rules and score objectives again <span class="pdf-ref">(07.03, 14.04)</span>.</li>
+                <li><b>Have 5 battle rounds been completed?</b> (yellow diamond) — Default core length; missions may specify a different number.
+                    <div class="branch branch-no"><b>No</b> — Start the next battle round at the top hexagon.</div>
+                    <div class="branch branch-yes"><b>Yes</b> — The battle ends.</div>
+                </li>
+                <li><b>End Battle &amp; Determine Victor</b> — Apply mission tie-breakers and declare the winner.</li>
+            </ol>
+            <p><b>Key distinction:</b> <em>End of Turn</em> happens twice per round (once per player). <em>End of Battle Round</em> happens once, after both players have finished, and triggers additional scoring.</p>
+        </div>
+        <div class="panel" id="main-rules">
+            <h2>Pre-Game Procedural Sequence <span class="pdf-ref">(01–06)</span></h2>
+            <table>
+                <tr><th>Step</th><th>Action</th><th>Constraints &amp; Outcomes</th></tr>
+                <tr><td>1. Generate Mission</td><td>Select/Draw Mission Parameters</td><td>Determines deployment zones, primary objectives, and win conditions.</td></tr>
+                <tr><td>2. Muster Armies</td><td>Build rosters; attach Leaders to Bodyguards</td><td>Each Bodyguard: one Leader &amp; one Support. Attached units = single entity <span class="pdf-ref">(19)</span>.</td></tr>
+                <tr><td>3. Create Battlefield</td><td>Place Terrain &amp; Objectives</td><td>40mm markers. Dense terrain = Solid boundaries <span class="pdf-ref">(13)</span>.</td></tr>
+                <tr><td>4. Declare Formations</td><td>Transports &amp; Strategic Reserves</td><td>Reserves ≤50% pts. AIRCRAFT must start in reserves <span class="pdf-ref">(20)</span>.</td></tr>
+                <tr><td>5. Pre-battle Abilities</td><td>Infiltrators, Scouts, Deep Strike setup</td><td>Infiltrators: &gt;8" from enemy. Scouts: move X", end &gt;8" from enemy <span class="pdf-ref">(24)</span>.</td></tr>
+                <tr><td>6. Begin Battle</td><td>Determine First Player</td><td>Mission rules. Player 1 starts Battle Round 1 <span class="pdf-ref">(07)</span>.</td></tr>
+            </table>
+        </div>
+        <div class="panel mistakes" id="main-mistakes">
+            <h3>Common Mistakes</h3>
+            <ul>
+                <li><b>Coherency:</b> requires 2"/5" to one other model <em>and</em> 9"/5" to every other — not a "7+ models" rule.</li>
+                <li><b>HEAVY:</b> +1 hit only if unengaged, not set up this turn, and no model moved &gt;3" (Advancing counts as moving).</li>
+                <li><b>Fire Overwatch:</b> end of opponent's <em>Movement</em> phase only; uses Snap Shooting.</li>
+                <li><b>Scoring:</b> OC checked at end of each phase, end of turn, <em>and</em> end of battle round.</li>
+                <li><b>Crushing Impact:</b> used <em>just after each</em> MON/Veh charge move — not at end of Charge phase.</li>
+                <li><b>Engaging consolidation:</b> newly engaged enemies that have <em>not fought this phase</em> must be selected to fight <em>now</em>.</li>
+                <li><b>Melee weapons:</b> each model selects <em>one</em> melee weapon when fighting (split attacks across <em>targets</em>, not weapons).</li>
+                <li><b>Indirect / CQ shooting:</b> unit must <em>not</em> have Advanced this turn.</li>
+                <li><b>Pile-in / consolidate:</b> active player resolves <em>all</em> their units first; models in base contact cannot move.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- COMMAND -->
+    <div id="tables-cmd" class="phase-tables">
+        <nav class="phase-subnav" aria-label="Command phase sections">
+            <a href="#cmd-walkthrough">Walkthrough</a>
+            <a href="#cmd-rules">Rules</a>
+            <a href="#cmd-probability">Probability</a>
+        </nav>
+        <div class="flowchart-desc" id="cmd-walkthrough">
+            <h2>Command Phase — walkthrough <span class="pdf-ref">(08)</span></h2>
+            <p>The Command phase is linear: no loops inside the chart. The active player resolves battle-shock tests; CP gain affects both players at the same moment.</p>
+            <ol>
+                <li><b>Start of Command Phase</b> — The active player’s turn enters its first phase. Stratagems and abilities with “start of Command phase” timing may be used now.</li>
+                <li><b>Gain Core CP</b> (yellow) — <b>Both players</b> gain 1CP, regardless of who is active <span class="pdf-ref">(08.02)</span>. This happens before battle-shock tests.</li>
+                <li><b>Battle-Shock Step</b> (red hexagon) — The active player must take a battle-shock test for <b>every</b> unit that is at or below <b>half-strength</b> or already <b>battle-shocked</b> (order chosen by active player). Each rolls 2D6 vs Leadership. Pass removes battle-shocked status; fail applies battle-shocked (OC becomes ‘−’, no stratagem targeting, actions fail) <span class="pdf-ref">(08.03)</span>.</li>
+                <li><b>Command Abilities</b> — Resolve any command-phase abilities, aura updates, or stratagems that trigger here (e.g. <span class="keyword">Insane Bravery</span> is declared just before a test, not in this box, but other army rules land here).</li>
+                <li><b>End of Command Phase</b> — Resolve end-of-phase rules, then mission scoring if triggered <span class="pdf-ref">(08.05, 14.04)</span>. Transition to Movement phase.</li>
+            </ol>
+        </div>
+        <div class="panel" id="cmd-rules">
+            <h2>Command Phase <span class="pdf-ref">(08)</span></h2>
+            <div class="active-player-box"><b>Active player</b> must test every qualifying unit; both players gain 1CP at start of Command phase.</div>
+            <h3>Battle-Shock Tests <span class="pdf-ref">(08.03)</span></h3>
+            <table>
+                <tr><th>Condition</th><th>Resolution</th><th>Failed Effects (Battle-Shocked)</th></tr>
+                <tr>
+                    <td><b>Every</b> unit at/below <b>Half-strength</b> OR currently battle-shocked must test.<br>
+                        Multi-model units: remaining models ≤ half of <b>starting strength</b> (at or below half).<br>
+                        Single-model units: remaining <b>Wounds</b> ≤ half of starting W.<br>
+                        Units with starting strength 1 cannot be “at half-strength” (but can be below starting strength).</td>
+                    <td>Roll 2D6.<br><b>Success (≥ Ld):</b> unit is normal; if was battle-shocked, <b>status removed</b>.<br><b>Fail (&lt; Ld):</b> becomes battle-shocked.</td>
+                    <td>
+                        OC modified to '-'.<br>
+                        Cannot be targeted by Stratagems.<br>
+                        Cannot start actions; active actions fail.
+                    </td>
+                </tr>
+            </table>
+            <h3>Command Stratagems</h3>
+            <table>
+                <tr><th>Stratagem</th><th>WHEN</th><th>COST</th><th>EFFECT</th></tr>
+                <tr><td><span class="keyword">Command Re-roll</span></td><td>Just after making a roll</td><td>1CP</td><td>Re-roll one Advance, Charge, Hit, Wound, Save, Damage, Hazard, or number-of-attacks roll.</td></tr>
+                <tr><td><span class="keyword">Insane Bravery</span></td><td>Just before a battle-shock test</td><td>1CP</td><td>Test automatically successful (once per battle).</td></tr>
+            </table>
+            <div class="prob-panel" id="cmd-probability">
+                <h3>Probability — Battle-shock (2D6) <span class="pdf-ref">(08.03)</span></h3>
+                <p class="prob-note">Green ≥66.7%, amber 33.4–66.6%, red ≤33.3%. Battle-shock re-roll uses one die; charge-style re-roll shown for comparison.</p>
+                <div id="cmd-prob-leadership"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOVEMENT -->
+    <div id="tables-mov" class="phase-tables">
+        <nav class="phase-subnav" aria-label="Movement phase sections">
+            <a href="#mov-walkthrough">Walkthrough</a>
+            <a href="#mov-rules">Rules</a>
+            <a href="#mov-probability">Probability</a>
+        </nav>
+        <div class="flowchart-desc" id="mov-walkthrough">
+            <h2>Movement Phase — walkthrough <span class="pdf-ref">(09)</span></h2>
+            <p>The Movement phase is a <b>unit loop</b>: the active player picks one eligible unit at a time until every unit that will move has been resolved—or skipped.</p>
+            <ol>
+                <li><b>Start of Movement Phase</b> — Phase begins; end-of-phase scoring may be checked after the phase completes <span class="pdf-ref">(14.04)</span>.</li>
+                <li><b>Select Unit to Move</b> — Active player chooses an unengaged unit (or an engaged unit for fall-back), or a transport/passenger for disembark/embark sequences. Units already resolved this phase are skipped on later passes.</li>
+                <li><b>Move Type</b> (purple hexagon) — Declare exactly one mode for that unit:
+                    <ul>
+                        <li><b>Remain Stationary</b> — 0" move; can enable [HEAVY] later if other conditions met.</li>
+                        <li><b>Normal Move</b> — Up to M", must end unengaged.</li>
+                        <li><b>Advance</b> — Up to M + D6"; cannot charge or start actions; may Assault shoot <span class="pdf-ref">(09.04)</span>.</li>
+                        <li><b>Fall-back</b> — Ordered retreat (optional if not battle-shocked) or Desperate Escape (mandatory if battle-shocked) <span class="pdf-ref">(09.05)</span>.</li>
+                        <li><b>Embark</b> — During a Normal/Advance move: unit wholly within 3" of transport, not set up this turn <span class="pdf-ref">(18.02)</span>.</li>
+                        <li><b>Disembark</b> — Passengers leaving a transport (Rapid / Tactical / Combat modes) <span class="pdf-ref">(18.03)</span>.</li>
+                        <li><b>Ingress</b> — Strategic Reserves units arriving on the battlefield <span class="pdf-ref">(20)</span> — distinct from disembark.</li>
+                    </ul>
+                </li>
+                <li><b>Constraints</b> (yellow) — Apply coherency (2"/5" to one model, 9"/5" to all others), terrain, and engagement rules. <b>Desperate Escape / Combat Disembark:</b> make hazard rolls <em>before</em> moving each model <span class="pdf-ref">(09.07, 18.03)</span>.</li>
+                <li><b>More units?</b> (yellow diamond)
+                    <div class="branch branch-yes"><b>Yes</b> — Return to <b>Select Unit to Move</b> for the next unit.</div>
+                    <div class="branch branch-no"><b>No</b> — Every unit has been moved or declared stationary; the phase ends.</div>
+                </li>
+                <li><b>End of Movement Phase</b> — Opponent may use <span class="keyword">Fire Overwatch</span> and <span class="keyword">Rapid Ingress</span> at end of this phase before Shooting begins <span class="pdf-ref">(15.08, 15.07)</span>.</li>
+            </ol>
+        </div>
+        <div class="panel" id="mov-rules">
+            <h2>Movement Phase <span class="pdf-ref">(09)</span></h2>
+            <h3>Move Types &amp; Constraints</h3>
+            <table>
+                <tr><th>Type</th><th>Condition</th><th>Effect &amp; Constraints</th></tr>
+                <tr><td><b>Remain Stationary</b></td><td>Any unengaged unit</td><td>Moves 0". Enables [HEAVY] if other conditions met.</td></tr>
+                <tr><td><b>Normal Move</b></td><td>Unengaged</td><td>Move up to M. Must end unengaged.</td></tr>
+                <tr><td><b>Advance Move</b></td><td>Unengaged</td><td>Move up to M + 1D6. Cannot declare charge or start actions. <b>CAN</b> Assault shoot with <span class="keyword">[ASSAULT]</span> weapons <span class="pdf-ref">(09.04, 10.04)</span>.</td></tr>
+                <tr><td><b>Fall-back (Ordered Retreat)</b></td><td>Engaged, <b>not</b> battle-shocked (optional; may choose Desperate Escape instead)</td><td>Move up to M to leave engagement. Cannot shoot, charge, or start actions after.</td></tr>
+                <tr><td><b>Fall-back (Desperate Escape)</b></td><td>Engaged, battle-shocked — <b>mandatory</b></td><td><b>Before moving:</b> hazard roll per model (1–2 = 1 MW; 3 MW if MON/Veh). Can move through enemies. Must end unengaged. If not battle-shocked after moving, must take a battle-shock roll <span class="pdf-ref">(09.07)</span>.</td></tr>
+                <tr><td><b>Embark</b></td><td>During Normal/Advance move</td><td>Unit wholly within 3" of friendly transport; not set up this turn; capacity permitting <span class="pdf-ref">(18.02)</span>.</td></tr>
+                <tr><td><b>Coherency</b></td><td>All moves</td><td>Within <b>2" hor / 5" vert</b> of at least one other model <b>AND</b> within <b>9" hor / 5" vert</b> of <b>every</b> other model <span class="pdf-ref">(03.03)</span>.</td></tr>
+            </table>
+            <h3>Disembark Modes <span class="pdf-ref">(18.03)</span></h3>
+            <table>
+                <tr><th>Mode</th><th>When</th><th>Effect</th></tr>
+                <tr><td><b>Rapid Disembark</b></td><td><b>Mandatory</b> after transport Normal or Ingress move</td><td>Set up ≤3". Unit cannot charge this turn.</td></tr>
+                <tr><td><b>Tactical Disembark</b></td><td>Transport has <b>not</b> moved yet (stationary)</td><td>Set up ≤3". Unit may Normal/Advance move afterward.</td></tr>
+                <tr><td><b>Combat Disembark</b></td><td>Transport destroyed</td><td>Set up ≤6". May set up <b>engaged</b> with transport's enemies. Battle-shocked; hazard rolls per model.</td></tr>
+            </table>
+            <h3>Strategic Reserves — Ingress <span class="pdf-ref">(20)</span></h3>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Ingress Move</b></td><td>Turn 2+: set up wholly &gt;8" from enemies. Before Turn 3, not in opponent's deployment zone. Cannot move further this phase.</td></tr>
+                <tr><td><b>Deep Strike</b></td><td>Units with Deep Strike use Ingress; may set up anywhere &gt;8" from enemies <span class="pdf-ref">(24.08)</span>.</td></tr>
+            </table>
+            <div class="prob-panel" id="mov-probability">
+                <h3>Probability — Advance (M + D6) <span class="pdf-ref">(09.04)</span></h3>
+                <p class="prob-note">Cells show base % / + Command Re-roll % where applicable.</p>
+                <div id="mov-prob-advance"></div>
+                <h3>Probability — Hazard rolls <span class="pdf-ref">(09, 18.03)</span></h3>
+                <div id="mov-prob-hazard"></div>
+                <h4>Desperate Escape / Combat Disembark — unit survival</h4>
+                <div id="mov-prob-hazard-unit"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOOTING -->
+    <div id="tables-sht" class="phase-tables">
+        <nav class="phase-subnav" aria-label="Shooting phase sections">
+            <a href="#sht-walkthrough">Walkthrough</a>
+            <a href="#sht-rules">Rules</a>
+            <a href="#sht-probability">Probability</a>
+        </nav>
+        <div class="flowchart-desc" id="sht-walkthrough">
+            <h2>Shooting Phase — walkthrough <span class="pdf-ref">(10)</span></h2>
+            <p>The first chart above is the <b>unit loop</b> for shooting. Each iteration fires one eligible unit completely before the next is selected.</p>
+            <ol>
+                <li><b>Start of Shooting Phase</b> — Phase opens. <span class="keyword">Smokescreen</span> may be declared at start of opponent’s Shooting phase <span class="pdf-ref">(15.10)</span>.</li>
+                <li><b>Select Eligible Unit</b> — Pick a unit on the battlefield that has not already shot this phase. Battle-shocked units can still be selected (they may affect actions/eligibility elsewhere even if they make no attacks). Units that Advanced or fell back cannot shoot (except Assault after Advance).</li>
+                <li><b>Shooting Type</b> (purple hexagon) — Determine which mode applies based on what the unit did this turn:
+                    <ul>
+                        <li><b>Normal</b> — Unengaged, did not Advance.</li>
+                        <li><b>Assault</b> — Advanced; only <span class="keyword">[ASSAULT]</span> weapons.</li>
+                        <li><b>Close-Quarters</b> — Engaged, did not Advance; CQ/PISTOL at engaged enemies.</li>
+                        <li><b>Indirect</b> — Unengaged, did not Advance; <span class="keyword">[INDIRECT FIRE]</span> weapons may target without LoS (other weapons still need visible targets) <span class="pdf-ref">(10.07)</span>.</li>
+                    </ul>
+                </li>
+                <li><b>Select Weapons</b> — Choose which ranged weapons fire. Identical weapons may be combined. Each weapon profile picks one target unit.</li>
+                <li><b>Select Targets</b> (pink) — For each weapon, run the <b>Target Selection</b> decision tree (second chart above). Invalid targets cannot be selected.</li>
+                <li><b>Resolve Attacks</b> (red) — For each targeted enemy unit: gather attack dice (batch identical weapons) → Hit → Wound → Save → Damage (loop until all weapons resolved) <span class="pdf-ref">(04.03, 04–06)</span>. Resolve [HAZARDOUS] after the unit finishes shooting.</li>
+                <li><b>More units?</b> (yellow diamond)
+                    <div class="branch branch-yes"><b>Yes</b> — Loop to <b>Select Eligible Unit</b>.</div>
+                    <div class="branch branch-no"><b>No</b> — End of Shooting Phase.</div>
+                </li>
+            </ol>
+
+            <h3>Target Selection — walkthrough <span class="pdf-ref">(06.01, 10, 13, 24.24)</span></h3>
+            <p>The second chart above runs <b>once per weapon</b> when choosing a target. Follow each diamond in order; any “No” on a hard gate sends you to <b>Cannot select target</b> (pink). A path reaching <b>Valid target</b> (green) proceeds to hit modifiers, then the attack sequence.</p>
+            <ol>
+                <li><b>Pick candidate enemy unit</b> — Start with a unit you intend to shoot with this weapon.</li>
+                <li><b>Within weapon range?</b> — Every model firing the weapon must be in range of at least one model in the target unit (unless Indirect bypasses LoS, not range).</li>
+                <li><b>Shooting type eligible?</b> — Normal/Assault/CQ/Indirect rules must allow this unit state and weapon combination <span class="pdf-ref">(10.03–10.07)</span>.</li>
+                <li><b>Engaged targeting OK?</b> — Normal and Assault <b>cannot</b> target engaged units; Close-Quarters only engaged enemies; <span class="keyword">[BLAST]</span> never targets engaged units (even MON/Veh CQ) <span class="pdf-ref">(10.06, FAQ)</span>.</li>
+                <li><b>Lone Operative — target within 12"?</b> — Unattached Characters/Agents cannot be selected beyond 12" by ranged attacks <span class="pdf-ref">(24.24)</span>.</li>
+                <li><b>Draw Line of Sight</b> — From any firing model to any target model, 1 mm line; ignore models in the firing unit <span class="pdf-ref">(06.01)</span>. Then check terrain in sequence:
+                    <ul>
+                        <li><b>Solid</b> — Dense terrain gap ≤3" from ground blocks LoS <span class="pdf-ref">(13.11)</span>.</li>
+                        <li><b>Obscuring</b> — If LoS crosses a light/dense area and neither model is inside, target is NOT VISIBLE <span class="pdf-ref">(13.10)</span>.</li>
+                        <li><b>Hidden</b> — INF/B/S in dense terrain that has not shot this or the previous turn: NOT VISIBLE if attacker is beyond 15" detection range <span class="pdf-ref">(13.09)</span>.</li>
+                    </ul>
+                </li>
+                <li><b>Unit visible?</b>
+                    <div class="branch branch-yes"><b>Yes</b> — Apply <b>Benefit of Cover</b> (−1 BS) and <b>Plunging Fire</b> (+1 BS) checks, then target is valid.</div>
+                    <div class="branch branch-no"><b>No</b> — Only <span class="keyword">[INDIRECT FIRE]</span> weapons may still target if in range and eligible; Indirect always grants Benefit of Cover when applicable. Otherwise invalid.</div>
+                </li>
+                <li><b>Valid target → Attack sequence</b> — Apply [HEAVY], engaged MON/Veh penalties, and other hit modifiers, then resolve attacks.</li>
+            </ol>
+        </div>
+        <div class="panel" id="sht-rules">
+            <h2>Shooting Phase <span class="pdf-ref">(10)</span></h2>
+            <h3>Making Attacks — Select Weapons, Select Targets, Resolve Attacks <span class="pdf-ref">(04)</span></h3>
+            <table>
+                <tr><th>Step</th><th>Rules</th></tr>
+                <tr><td><b>1. Select Weapons</b></td><td>Choose ranged weapons to fire. Each weapon fires at one target. Identical weapons may be combined.</td></tr>
+                <tr><td><b>2. Select Targets</b></td><td>Each weapon picks one enemy unit in range and eligible. See Target Selection flowchart above.</td></tr>
+                <tr><td><b>3. Resolve Attacks</b></td><td>Per target unit: gather attack dice (identical weapons batch) → resolve attack sequence (05). Repeat for each weapon/target combination <span class="pdf-ref">(04.03)</span>.</td></tr>
+            </table>
+
+            <h3>Resolve Attacks — detail <span class="pdf-ref">(04–06)</span></h3>
+            <table>
+                <tr><th>Step</th><th>Rules</th></tr>
+                <tr><td><b>0. Gather dice</b></td><td>Select one targeted enemy unit → pick one unused weapon → gather D6 = weapon A (batch identical profiles) → resolve those dice → repeat <span class="pdf-ref">(04.03)</span>.</td></tr>
+                <tr><td><b>1. Determine Attacks</b></td><td>Total attacks = weapon A, plus <span class="keyword">[BLAST X]</span>, <span class="keyword">[RAPID FIRE X]</span>, etc. Cannot combine different weapons into one attack roll batch unless identical profiles.</td></tr>
+                <tr><td><b>2. Hit Roll</b></td><td>Roll vs BS/WS; unmod <b>1 always fails</b>; unmod <b>6 = Critical Hit</b>. Apply modifiers (cover, [HEAVY], etc.) capped at 2+ best / 6+ worst unless <span class="keyword">[PSYCHIC]</span>.</td></tr>
+                <tr><td><b>3. Critical Hit effects</b></td><td><span class="keyword">[LETHAL HITS]</span> auto-wound; <span class="keyword">[SUSTAINED HITS X]</span> adds X hits (roll those hits separately).</td></tr>
+                <tr><td><b>4. Wound Roll</b></td><td>Compare S vs T; unmod 1 fails; unmod 6 = <b>Critical Wound</b>. <span class="keyword">[ANTI-X Y+]</span> can also crit-wound.</td></tr>
+                <tr><td><b>5. Critical Wound effects</b></td><td><span class="keyword">[DEVASTATING WOUNDS]</span> inflicts MW = D and attack ends; otherwise proceed to saves.</td></tr>
+                <tr><td><b>6. Allocate &amp; Save</b></td><td>Attacker allocates to groups; defender picks model. Roll saves (lowest first); AP modifies Sv; use Invuln if better. <span class="keyword">[PRECISION]</span> at allocation step.</td></tr>
+                <tr><td><b>7. Inflict Damage</b></td><td>Failed save: lose W = D. Destroyed at 0 W.</td></tr>
+                <tr><td><b>8. Mortal Wounds &amp; FNP</b></td><td>MW after normal damage; spill within unit. Feel No Pain rolls per wound lost <span class="pdf-ref">(06.03)</span>.</td></tr>
+                <tr><td><b>9. Hazardous</b></td><td>After unit finishes shooting <b>or fighting</b>: 1D6 per <span class="keyword">[HAZARDOUS]</span> weapon selected; 1–2 = MW <span class="pdf-ref">(24.15)</span>.</td></tr>
+            </table>
+
+            <div class="two-col">
+                <div>
+                    <h3>Shooting Types — Eligibility <span class="pdf-ref">(10.03–10.07)</span></h3>
+                    <table>
+                        <tr><th>Type</th><th>Unit State</th><th>Weapons / Targets</th></tr>
+                        <tr><td><b>Normal</b></td><td>Unengaged, did not Advance</td><td>Any ranged weapons; unengaged targets (LoS required unless Indirect)</td></tr>
+                        <tr><td><b>Assault</b></td><td>Advanced this turn</td><td><span class="keyword">[ASSAULT]</span> weapons only; unengaged targets</td></tr>
+                        <tr><td><b>Close-Quarters</b></td><td>Engaged, <b>did not Advance</b></td><td>INF: <span class="keyword">[CLOSE-QUARTERS]</span> / <span class="keyword">[PISTOL]</span> only, engaged targets. MON/Veh: any weapon at engaged targets; non-CQ −1 hit; <span class="keyword">[BLAST]</span> cannot target engaged <span class="pdf-ref">(10.06)</span></td></tr>
+                        <tr><td><b>Indirect</b></td><td>Unengaged, <b>did not Advance</b></td><td><span class="keyword">[INDIRECT FIRE]</span> vs non-visible targets; other weapons need LoS. Cover; 1–5 fail (1–3 if stationary + friendly LoS). <b>Cannot re-roll hits</b> <span class="pdf-ref">(10.07)</span></td></tr>
+                        <tr><td><b>Snap Shooting</b></td><td>Fire Overwatch</td><td>One visible target within 24"; hit on unmodified 6 only; no re-rolls <span class="pdf-ref">(15.08–15.09)</span></td></tr>
+                    </table>
+                </div>
+                <div>
+                    <h3>Terrain Categories — Targeting <span class="pdf-ref">(13.02–13.11)</span></h3>
+                    <table>
+                        <tr><th>Category</th><th>Examples</th><th>Targeting Impact</th></tr>
+                        <tr><td><b>Exposed</b></td><td>Craters, razorwire, debris</td><td>Cover for INF/B/S/Swarm inside area; no Hidden</td></tr>
+                        <tr><td><b>Light</b></td><td>Barricades, low walls</td><td>Terrain area is <b>Obscuring</b>; partial LoS often grants cover (−1 BS)</td></tr>
+                        <tr><td><b>Dense</b></td><td>Ruins, buildings, woods</td><td><b>Obscuring</b> + <b>Solid</b> (≤3" ground gaps block LoS) + enables <b>Hidden</b></td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <h3>Visibility &amp; Modifiers <span class="pdf-ref">(06.01, 13.08–13.11, 24.24)</span></h3>
+            <table>
+                <tr><th>Rule</th><th>Condition</th><th>Impact</th></tr>
+                <tr><td><b>Benefit of Cover</b></td><td>Target in terrain area or not fully visible; or unit has <b>Stealth</b></td><td>Worsen BS by 1 <span class="pdf-ref">(13.08, 24.33)</span></td></tr>
+                <tr><td><b>Stealth</b></td><td>Target unit has Stealth ability</td><td>Always has Benefit of Cover vs ranged attacks <span class="pdf-ref">(24.33)</span></td></tr>
+                <tr><td><b>Plunging Fire</b></td><td>Attacker ≥3" elevated vs ground target</td><td>Improve BS by 1 <span class="pdf-ref">(22.05)</span></td></tr>
+                <tr><td><b>Solid</b></td><td>Dense terrain; enclosed gap ≤3" from ground</td><td>LoS blocked <span class="pdf-ref">(13.11)</span></td></tr>
+                <tr><td><b>Obscuring</b></td><td>LoS crosses light/dense area (neither model inside)</td><td>NOT VISIBLE <span class="pdf-ref">(13.10)</span></td></tr>
+                <tr><td><b>Hidden</b></td><td>INF/B/S in dense area, did not shoot this/previous turn</td><td>NOT VISIBLE beyond 15" <span class="pdf-ref">(13.09)</span></td></tr>
+                <tr><td><b>Lone Operative</b></td><td>Unattached Character/Agent targeted</td><td>NOT VISIBLE beyond 12"; no Indirect beyond 12" <span class="pdf-ref">(24.24)</span></td></tr>
+                <tr><td><b>[HEAVY]</b></td><td>Unengaged, not set up this turn, no model moved &gt;3" (includes Advance)</td><td>+1 to hit roll <span class="pdf-ref">(24.16)</span></td></tr>
+            </table>
+
+            <h3>Save Allocation &amp; Mortal Wounds <span class="pdf-ref">(05.03–05.05, 06.02)</span></h3>
+            <table>
+                <tr><th>Step</th><th>Logic</th></tr>
+                <tr><td><b>Allocation groups</b></td><td>Create groups: wounded non-CHARACTER models; CHARACTER models; undamaged non-CHARACTER. Attacker allocates to a group; defender picks model.</td></tr>
+                <tr><td><b>Save order</b></td><td>Roll saves; resolve <b>lowest save rolls first</b>. Modify roll by AP. Use Invulnerable if better than modified Sv.</td></tr>
+                <tr><td><b>[PRECISION]</b></td><td>At allocation-order step, attacker may allocate to visible CHARACTER in attached unit <span class="pdf-ref">(24.28)</span>.</td></tr>
+                <tr><td><b>Mortal Wounds</b></td><td>Inflicted after normal damage. Spill to next model in unit. Max one model per Devastating Wounds crit. FNP rolls apply.</td></tr>
+                <tr><td><b>Inflict Damage</b></td><td>Failed save: lose W = D. Destroyed at 0 W. Excess normal damage lost.</td></tr>
+            </table>
+
+            <h3>Ranged Weapon Keywords</h3>
+            <table>
+                <tr><th>Keyword</th><th>Mechanic</th></tr>
+                <tr><td><span class="keyword">[ANTI-X Y+]</span></td><td>Unmodified wound Y+ vs keyword X = Critical Wound.</td></tr>
+                <tr><td><span class="keyword">[ASSAULT]</span></td><td>Fire after Advancing.</td></tr>
+                <tr><td><span class="keyword">[BLAST X]</span></td><td>+X attacks per 5 models in target. Cannot target engaged units.</td></tr>
+                <tr><td><span class="keyword">[DEVASTATING WOUNDS]</span></td><td>Critical wound = MW equal to D; attack ends.</td></tr>
+                <tr><td><span class="keyword">[HAZARDOUS]</span></td><td>After shooting or fighting: 1D6 per weapon selected; 1–2 = 1 MW (3 if MON/Veh).</td></tr>
+                <tr><td><span class="keyword">[IGNORES COVER]</span></td><td>Target cannot claim Benefit of Cover.</td></tr>
+                <tr><td><span class="keyword">[INDIRECT FIRE]</span></td><td>No LoS required; cover; special hit band; no hit re-rolls.</td></tr>
+                <tr><td><span class="keyword">[LETHAL HITS]</span></td><td>Critical hit auto-wounds.</td></tr>
+                <tr><td><span class="keyword">[MELTA X]</span></td><td>+X Damage within half range.</td></tr>
+                <tr><td><span class="keyword">[ONE SHOT]</span></td><td>Once per battle per weapon.</td></tr>
+                <tr><td><span class="keyword">[PRECISION]</span></td><td>Allocate to visible CHARACTER at allocation step.</td></tr>
+                <tr><td><span class="keyword">[PSYCHIC]</span></td><td>Ignore BS/WS and hit-roll modifiers.</td></tr>
+                <tr><td><span class="keyword">[RAPID FIRE X]</span></td><td>+X attacks within half range.</td></tr>
+                <tr><td><span class="keyword">[SUSTAINED HITS X]</span></td><td>Critical hit = X extra hits.</td></tr>
+                <tr><td><span class="keyword">[TORRENT]</span></td><td>Auto-hit.</td></tr>
+                <tr><td><span class="keyword">[TWIN-LINKED]</span></td><td>Re-roll wound roll.</td></tr>
+            </table>
+            <div class="prob-panel" id="sht-probability">
+                <h3>Probability — Attack sequence <span class="pdf-ref">(04–05)</span></h3>
+                <p class="prob-note">Matrix cells: <b>base % / +1 re-roll %</b>. Green ≥66.7%, amber 33.4–66.6%, red ≤33.3%.</p>
+                <h4>Hit rolls (BS) <span class="pdf-ref">(05.01, 24.16)</span></h4>
+                <div id="sht-prob-hit"></div>
+                <h4>Wound rolls (S vs T) <span class="pdf-ref">(05.02)</span></h4>
+                <div id="sht-prob-wound"></div>
+                <h4>Save rolls (Sv vs AP) <span class="pdf-ref">(05.03)</span></h4>
+                <div id="sht-prob-save"></div>
+                <h4>Special shooting rolls <span class="pdf-ref">(10.07, 15.08)</span></h4>
+                <div id="sht-prob-special"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHARGE -->
+    <div id="tables-chg" class="phase-tables">
+        <nav class="phase-subnav" aria-label="Charge phase sections">
+            <a href="#chg-walkthrough">Walkthrough</a>
+            <a href="#chg-rules">Rules</a>
+            <a href="#chg-probability">Probability</a>
+        </nav>
+        <div class="flowchart-desc" id="chg-walkthrough">
+            <h2>Charge Phase — walkthrough <span class="pdf-ref">(11)</span></h2>
+            <p>Charges are resolved <b>one declaring unit at a time</b>. A failed charge leaves the unit stationary; a successful charge grants <span class="keyword">Fights First</span> in the Fight phase.</p>
+            <ol>
+                <li><b>Start of Charge Phase</b> — Active player may declare charges with eligible units (unengaged, did not Advance or fall back this turn).</li>
+                <li><b>Declare Charge</b> — Nominate one unengaged unit within 12" of at least one enemy unit. Select one or more enemy targets within charge distance; all must be reachable if the charge succeeds <span class="pdf-ref">(11.02)</span>.</li>
+                <li><b>Charge Roll (2D6)</b> (purple) — Roll 2D6; the result is the maximum distance each model may move toward the targets.</li>
+                <li><b>Reach ALL targets?</b> (yellow diamond) — Each model ends closer to charge targets; models that can end within 1" of a target must do so; then must end engaged (2" hor / 5" vert) with <b>every</b> declared target. Cannot engage non-targets.
+                    <div class="branch branch-yes"><b>Yes</b> — <b>Charge OK</b>: unit moves, ends engaged, gains <span class="keyword">Fights First</span>. Active player may use <span class="keyword">Crushing Impact</span> (MON/Veh) <b>just after this charge move</b> <span class="pdf-ref">(15.06)</span>.</div>
+                    <div class="branch branch-no"><b>No</b> — <b>Failed</b>: the unit does not move at all; no partial charges.</div>
+                </li>
+                <li><b>More units?</b> (yellow diamond)
+                    <div class="branch branch-yes"><b>Yes</b> — Return to <b>Declare Charge</b> with another unit.</div>
+                    <div class="branch branch-no"><b>No</b> — Proceed to end of phase.</div>
+                </li>
+                <li><b>End of Charge Phase</b> — Opponent may use <span class="keyword">Heroic Intervention</span> (charge; gains Fights First if successful) <span class="pdf-ref">(15.11)</span>.</li>
+            </ol>
+        </div>
+        <div class="panel" id="chg-rules">
+            <h2>Charge Phase <span class="pdf-ref">(11)</span></h2>
+            <table>
+                <tr><th>Step</th><th>Rules</th></tr>
+                <tr><td><b>1. Declare</b></td><td>Unengaged unit within 12" of an enemy unit. Cannot if Advanced or fell back.</td></tr>
+                <tr><td><b>2. Roll</b></td><td>2D6 = max charge distance.</td></tr>
+                <tr><td><b>3. Attempt</b></td><td>Models end closer; must end within 1" of targets if possible, then engaged with <b>all</b> targets (2" hor / 5" vert); cannot engage non-targets <span class="pdf-ref">(11.04)</span>.</td></tr>
+                <tr><td><b>4. Move</b></td><td>Success: move, end engaged, gain <span class="keyword">Fights First</span>.</td></tr>
+            </table>
+            <h3>Charge Stratagems</h3>
+            <table>
+                <tr><th>Stratagem</th><th>WHEN</th><th>COST</th><th>EFFECT</th></tr>
+                <tr><td><span class="keyword">Heroic Intervention</span></td><td>End of opponent's Charge phase</td><td>1CP / 2CP</td><td>Charge with unengaged unit within 12" of enemy (CHARACTER/WALKER vehicles only). Modes: <b>Leap to Defend</b> (1CP) — only units that charged this phase; <b>Into the Fray</b> (2CP) — cap charge roll at 6, any enemy within 6". Successful charge grants Fights First <span class="pdf-ref">(15.11)</span>.</td></tr>
+                <tr><td><span class="keyword">Crushing Impact</span></td><td>Your Charge phase, just after a friendly MON/Veh ends a charge move</td><td>1CP</td><td>Roll D6 = T: each 1 = self 1 MW; each 5+ = enemy 1 MW (max 6) <span class="pdf-ref">(15.06)</span>.</td></tr>
+            </table>
+            <div class="prob-panel" id="chg-probability">
+                <h3>Probability — Charge distance (2D6) <span class="pdf-ref">(11)</span></h3>
+                <p class="prob-note">Chance to roll at least the required distance. Charge re-roll must re-roll both dice.</p>
+                <div id="chg-prob-charge"></div>
+                <h3>Probability — Crushing Impact <span class="pdf-ref">(15)</span></h3>
+                <div id="chg-prob-crushing"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIGHT -->
+    <div id="tables-fgt" class="phase-tables">
+        <nav class="phase-subnav" aria-label="Fight phase sections">
+            <a href="#fgt-walkthrough">Walkthrough</a>
+            <a href="#fgt-rules">Rules</a>
+            <a href="#fgt-probability">Probability</a>
+        </nav>
+        <div class="flowchart-desc" id="fgt-walkthrough">
+            <h2>Fight Phase — walkthrough <span class="pdf-ref">(12)</span></h2>
+            <p>The Fight phase has four steps: <b>Pile In → Fight → Consolidate</b>, with nested alternation loops during Fight. The same “Resolve Melee Attacks” step is reused in both fight loops.</p>
+            <ol>
+                <li><b>Start of Fight Phase</b> — Start-of-phase abilities resolve. A unit is <b>eligible to fight</b> if it has not fought yet and: is engaged; <b>was engaged at the start of the Fight step</b>; or made a charge move this turn <span class="pdf-ref">(12.04)</span>.</li>
+                <li><b>Pile In</b> (optional, yellow) — <b>Active player</b> resolves pile-in with all chosen eligible units first, then opponent. Each unit may move up to 3" once. Models in base contact cannot move. Must end engaged; engaged models stay engaged with the same enemies <span class="pdf-ref">(12.02–12.03)</span>.</li>
+                <li><b>Fights First units remaining?</b> (yellow diamond) — Units with <span class="keyword">Fights First</span> (chargers, Counter-offensive, etc.) fight before everyone else.
+                    <div class="branch branch-yes"><b>Yes</b> — Go to alternation step below.</div>
+                    <div class="branch branch-no"><b>No</b> — Skip to Remaining Combats check.</div>
+                </li>
+                <li><b>Alternate Fights First</b> (yellow) — Players alternate picking one eligible Fights First unit; <b>active player selects first</b>. Each pick: select fight type (Normal or Overrun) → resolve attacks → return to check. If opponent has no eligible Fights First unit, active player continues alone.</li>
+                <li><b>Resolve Melee Attacks</b> (red) — Each model: <b>one melee weapon</b> → select up to A engaged targets → gather dice → Hit → Wound → Save → Damage <span class="pdf-ref">(04, 12.05–12.06)</span>. [HAZARDOUS] after unit finishes fighting.</li>
+                <li><b>Remaining combats left?</b> (yellow diamond) — Units eligible to fight without Fights First (or already in this pool).
+                    <div class="branch branch-yes"><b>Yes</b> — <b>Alternate Remaining Combats</b>: player who finished Fights First selects first. After each fight, if new Fights First units became eligible, <b>return to Fights First loop</b>.</div>
+                    <div class="branch branch-no"><b>No</b> — All combats resolved; proceed to Consolidation.</div>
+                </li>
+                <li><b>Consolidate</b> (optional, yellow) — <b>Active player consolidates all eligible units first</b>, then opponent (units that were eligible to fight this phase). Up to 3"; Ongoing → Engaging → Objective modes in order <span class="pdf-ref">(12.07–12.08)</span>. <b>Engaging consolidation:</b> enemies pulled in that have <em>not fought this phase</em> must be selected to fight immediately.</li>
+                <li><b>End of Fight Phase</b> — Turn proceeds to End of Turn step on the Master Loop.</li>
+            </ol>
+            <p><b>Opponent timing:</b> <span class="keyword">Counter-offensive</span> (2CP) — non-active player, after an enemy unit finishes fighting: one eligible unit gains Fights First and <b>must be the next unit that player selects to fight</b> <span class="pdf-ref">(15.12)</span>.</p>
+        </div>
+        <div class="panel" id="fgt-rules">
+            <h2>Fight Phase <span class="pdf-ref">(12)</span></h2>
+            <h3>Making Attacks — Melee <span class="pdf-ref">(04, 12.05–12.08)</span></h3>
+            <table>
+                <tr><th>Step</th><th>Rules</th></tr>
+                <tr><td><b>1. Select Weapons</b></td><td>Each model must select <b>one</b> melee weapon to fight with <span class="pdf-ref">(04.01)</span>.</td></tr>
+                <tr><td><b>2. Select Targets</b></td><td>Each weapon: select one or more engaged enemy units (max targets = A). Split attacks between targets if needed <span class="pdf-ref">(04.02)</span>.</td></tr>
+                <tr><td><b>3. Resolve Attacks</b></td><td>Gather dice per target → same sequence as shooting → [HAZARDOUS] after fighting <span class="pdf-ref">(04.03, 24.15)</span>.</td></tr>
+            </table>
+
+            <h3>Resolve Attacks — detail <span class="pdf-ref">(04–06, 12)</span></h3>
+            <table>
+                <tr><th>Step</th><th>Rules</th></tr>
+                <tr><td><b>0. Gather dice</b></td><td>Same per-target weapon batching as shooting <span class="pdf-ref">(04.03)</span>.</td></tr>
+                <tr><td><b>1. Determine Attacks</b></td><td>Weapon A plus <span class="keyword">[CLEAVE X]</span>, <span class="keyword">[EXTRA ATTACKS]</span>, etc.</td></tr>
+                <tr><td><b>2–8.</b></td><td>Follow the same Hit → Critical Hit → Wound → Critical Wound → Allocate &amp; Save → Damage → MW → FNP sequence as the Shooting tab.</td></tr>
+                <tr><td><b>9. Hazardous</b></td><td>After unit finishes fighting: hazard rolls for each [HAZARDOUS] weapon selected.</td></tr>
+                <tr><td><b>[LANCE]</b></td><td>+1 to wound if the unit charged this turn.</td></tr>
+            </table>
+
+            <h3>Fight Types</h3>
+            <table>
+                <tr><th>Type</th><th>When</th><th>Notes</th></tr>
+                <tr><td><b>Normal Fight</b></td><td>Unit is engaged</td><td>Standard attack sequence.</td></tr>
+                <tr><td><b>Overrun Fight</b></td><td>Unengaged, or was unengaged at start of Fight step but became engaged during this Fight phase</td><td>Make one <b>additional pile-in move</b>, then fight. Example: destroyed last engaged enemy, or emergency disembark after destroying transport <span class="pdf-ref">(12.06)</span>.</td></tr>
+            </table>
+
+            <h3>Fight Sequence</h3>
+            <table>
+                <tr><th>Step</th><th>Mechanic</th></tr>
+                <tr><td><b>Pile In</b> (optional)</td><td>Active player all units first, then opponent. Up to 3" once per unit. Engaged: pile-in targets are all engaged enemies. Unengaged charger: enemies within 5". Base-contact models don't move. Must end engaged <span class="pdf-ref">(12.02–12.03)</span>.</td></tr>
+                <tr><td><b>Fights First</b></td><td>Alternate eligible Fights First units (active player starts). Return here if new Fights First units become eligible during Remaining Combats.</td></tr>
+                <tr><td><b>Remaining Combats</b></td><td>Alternate remaining eligible units (player who finished Fights First starts).</td></tr>
+                <tr><td><b>Consolidate</b> (optional)</td><td>Active player all units first, then opponent. Eligible if unit was eligible to fight this phase. Modes assessed in order: Ongoing (if engaged) → Engaging (enemy within 3") → Objective (objective within 3"). Engaging pulls un-fought enemies into immediate fights <span class="pdf-ref">(12.07–12.08)</span>.</td></tr>
+            </table>
+
+            <h3>Consolidation Modes <span class="pdf-ref">(12.08)</span></h3>
+            <table>
+                <tr><th>Mode</th><th>Condition</th><th>Notes</th></tr>
+                <tr><td><b>Ongoing</b></td><td>Engaged — <b>must</b> select if engaged</td><td>Move toward closest selected enemy; stay engaged with same enemies; base-contact models don't move.</td></tr>
+                <tr><td><b>Engaging</b></td><td>Unengaged, enemy within 3"</td><td>Move to engage selected enemies. Un-fought enemies fight back <b>this phase</b>.</td></tr>
+                <tr><td><b>Objective</b></td><td>Unengaged, objective within 3"</td><td>Move to within range of selected objective.</td></tr>
+            </table>
+
+            <h3>Fight Stratagems <span class="pdf-ref">(15.03, 15.12)</span></h3>
+            <table>
+                <tr><th>Stratagem</th><th>WHEN</th><th>COST</th><th>EFFECT</th></tr>
+                <tr><td><span class="keyword">Epic Challenge</span></td><td>Fight phase, just after your CHARACTER unit is selected to fight</td><td>1CP</td><td>That Character’s melee weapons gain <span class="keyword">[PRECISION]</span> <span class="pdf-ref">(15.03)</span>.</td></tr>
+                <tr><td><span class="keyword">Counter-offensive</span></td><td>Fight step of opponent’s Fight phase, after an enemy unit resolves attacks</td><td>2CP</td><td>One eligible unit gains Fights First; must be your <b>next</b> unit selected to fight <span class="pdf-ref">(15.12)</span>.</td></tr>
+            </table>
+
+            <h3>Melee Keywords</h3>
+            <table>
+                <tr><th>Keyword</th><th>Mechanic</th></tr>
+                <tr><td><span class="keyword">[CLEAVE X]</span></td><td>+X attacks per 5 models if all attacks vs one unit.</td></tr>
+                <tr><td><span class="keyword">[EXTRA ATTACKS]</span></td><td>Additional attacks with this weapon beyond selected weapon.</td></tr>
+                <tr><td><span class="keyword">[LANCE]</span></td><td>+1 wound if unit charged this turn.</td></tr>
+                <tr><td><span class="keyword">Fights First</span></td><td>Fight before remaining combats. Chargers gain automatically.</td></tr>
+            </table>
+            <div class="prob-panel" id="fgt-probability">
+                <h3>Probability — Melee attack sequence <span class="pdf-ref">(04–05, 12)</span></h3>
+                <p class="prob-note">Same hit/wound/save maths as shooting. Matrix cells: <b>base % / +1 re-roll %</b>.</p>
+                <h4>Hit rolls (WS)</h4>
+                <div id="fgt-prob-hit"></div>
+                <h4>Wound rolls (S vs T)</h4>
+                <div id="fgt-prob-wound"></div>
+                <h4>Save rolls (Sv vs AP)</h4>
+                <div id="fgt-prob-save"></div>
+                <h4>Feel No Pain <span class="pdf-ref">(06.03, 24.12)</span></h4>
+                <div id="fgt-prob-fnp"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- END TURN -->
+    <div id="tables-end" class="phase-tables">
+        <nav class="phase-subnav" aria-label="End of turn sections">
+            <a href="#end-walkthrough">Walkthrough</a>
+            <a href="#end-rules">Rules</a>
+        </nav>
+        <div class="flowchart-desc" id="end-walkthrough">
+            <h2>End of Turn — walkthrough <span class="pdf-ref">(07.04)</span></h2>
+            <p>Unlike most phases, End of Turn is a <b>fixed three-step sequence</b> with no unit loops. It fires once per active player turn, after the Fight phase completes.</p>
+            <ol>
+                <li><b>Start End of Turn Step</b> — The active player’s turn is almost complete; stratagems and abilities with “end of turn” timing may be used.</li>
+                <li><b>1. General Rules</b> — Resolve any core or army rules that explicitly trigger at end of turn (ongoing effects ending, turn-limited abilities, etc.).</li>
+                <li><b>2. Mission Rules (OC / VP)</b> — Calculate Objective Control and score Victory Points per the mission. Remember: OC is also checked at <b>end of each phase</b> and at <b>end of battle round</b>, not only here <span class="pdf-ref">(14.04)</span>.</li>
+                <li><b>3. Regain Coherency</b> — For each unit that is out of coherency, remove models until coherency is restored. Models removed this way do <b>not</b> trigger “when destroyed” abilities <span class="pdf-ref">(03.03)</span>.</li>
+                <li><b>Player Turn Ends</b> — Control passes back to the Master Loop. If the opponent has not yet taken a turn this battle round, they become the active player at <b>Start of Turn Step</b>; otherwise the battle round ends and end-of-round scoring applies.</li>
+            </ol>
+        </div>
+        <div class="panel" id="end-rules">
+            <h2>End of Turn <span class="pdf-ref">(07.04)</span></h2>
+            <table>
+                <tr><th>Step</th><th>Description</th></tr>
+                <tr><td><b>1. General Rules</b></td><td>Resolve end-of-turn abilities and stratagems.</td></tr>
+                <tr><td><b>2. Mission Rules</b></td><td>Calculate OC levels and score VP. Also checked at <b>end of each phase</b> and <b>end of battle round</b> <span class="pdf-ref">(14.04)</span>.</td></tr>
+                <tr><td><b>3. Regain Coherency</b></td><td>Remove models not in coherency (no "on destroyed" triggers).</td></tr>
+            </table>
+            <p><b>End of Battle Round</b> <span class="pdf-ref">(07.03)</span> — distinct from End of Turn: both players have taken a turn; resolve end-of-round rules and mission scoring again.</p>
+        </div>
+    </div>
+
+    <!-- OBJECTIVES & STRATAGEMS -->
+    <div id="tables-obj" class="phase-tables">
+        <div class="panel">
+            <h2>Objectives <span class="pdf-ref">(14)</span></h2>
+            <table>
+                <tr><th>Concept</th><th>Rule</th></tr>
+                <tr><td><b>Terrain Objectives</b></td><td>40mm markers in terrain areas. Models wholly within the terrain area contribute OC <span class="pdf-ref">(14.02)</span>.</td></tr>
+                <tr><td><b>Level of Control</b></td><td>Sum each player's model OC values within range. Higher total controls the objective.</td></tr>
+                <tr><td><b>Contested</b></td><td>Equal OC totals — neither player controls (unless objective is Secured).</td></tr>
+                <tr><td><b>Secured</b></td><td>Remains under your control even without models in range, until opponent's OC exceeds yours at end of a phase <span class="pdf-ref">(14.03)</span>.</td></tr>
+                <tr><td><b>Scoring Timing</b></td><td>OC calculated at <b>end of each phase</b>, <b>end of each player's turn</b>, and <b>end of each battle round</b> <span class="pdf-ref">(14.04)</span>.</td></tr>
+                <tr><td><b>Battle-shocked OC</b></td><td>Battle-shocked units' OC modified to '-' (contributes 0).</td></tr>
+            </table>
+
+            <h3>Scoring Checklist</h3>
+            <table>
+                <tr><th>When</th><th>Check</th></tr>
+                <tr><td>End of each <b>phase</b></td><td>Calculate OC at each objective; apply mission VP if triggered.</td></tr>
+                <tr><td>End of each player's <b>turn</b></td><td>Repeat OC / VP per mission rules <span class="pdf-ref">(07.04, 14.04)</span>.</td></tr>
+                <tr><td>End of each <b>battle round</b></td><td>Both players have acted — score again; resolve end-of-round rules <span class="pdf-ref">(07.03)</span>.</td></tr>
+            </table>
+
+            <h2>Stratagems — Usage Rules <span class="pdf-ref">(15.01)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Spending CP</b></td><td>When stratagem used: announce → pay CP → resolve effect.</td></tr>
+                <tr><td><b>Once per phase</b></td><td>Each stratagem once per phase unless stated otherwise.</td></tr>
+                <tr><td><b>Targeting limit</b></td><td>Cannot target the same unit with more than one stratagem per phase.</td></tr>
+                <tr><td><b>Battle-shocked</b></td><td>Battle-shocked units cannot be targeted by stratagems.</td></tr>
+            </table>
+
+            <h2>Core Stratagems <span class="pdf-ref">(15.02–15.12)</span></h2>
+            <table>
+                <tr><th>Stratagem</th><th>WHEN</th><th>TARGET</th><th>COST</th><th>EFFECT</th></tr>
+                <tr><td><span class="keyword">Command Re-roll</span></td><td>Just after making a roll</td><td>Your unit</td><td>1CP</td><td>Re-roll one Advance, Charge, Hit, Wound, Save, Damage, Hazard, or attacks roll.</td></tr>
+                <tr><td><span class="keyword">Epic Challenge</span></td><td>Fight phase, just after your CHARACTER is selected to fight</td><td>Your CHARACTER</td><td>1CP</td><td>Character's melee weapons gain <span class="keyword">[PRECISION]</span>.</td></tr>
+                <tr><td><span class="keyword">Insane Bravery</span></td><td>Battle-shock step, just before battle-shock roll</td><td>Your unit</td><td>1CP</td><td>Test automatically passes (once per battle).</td></tr>
+                <tr><td><span class="keyword">Explosives</span></td><td>Your Shooting phase</td><td>EXPLOSIVES/GRENADES unit (unengaged, did not Advance)</td><td>1CP</td><td>Pick model → visible enemy within 8" → roll 6D6; each 4+ = 1 MW <span class="pdf-ref">(15.05)</span>.</td></tr>
+                <tr><td><span class="keyword">Crushing Impact</span></td><td>Your Charge phase, just after friendly MON/Veh ends charge move</td><td>That MON/Veh unit</td><td>1CP</td><td>Roll D6 = T: 1 = self MW; 5+ = enemy MW (max 6).</td></tr>
+                <tr><td><span class="keyword">Rapid Ingress</span></td><td>End of opponent's Movement phase</td><td>One Strategic Reserves unit</td><td>1CP</td><td>Ingress move (not battle round 1) <span class="pdf-ref">(15.07)</span>.</td></tr>
+                <tr><td><span class="keyword">Fire Overwatch</span></td><td>End of opponent's <b>Movement</b> phase</td><td>One your unengaged unit (not TITANIC)</td><td>1CP</td><td>Shoot with <b>Snap Shooting</b>: one visible target within 24"; hit on unmod 6; no re-rolls.</td></tr>
+                <tr><td><span class="keyword">Smokescreen</span></td><td>Start of opponent's Shooting phase</td><td>One your SMOKE unit</td><td>1CP</td><td>Unit gains Benefit of Cover until end of phase <span class="pdf-ref">(15.10)</span>.</td></tr>
+                <tr><td><span class="keyword">Heroic Intervention</span></td><td>End of opponent's Charge phase</td><td>One your unengaged unit within 12" of enemy</td><td>1CP / 2CP</td><td>Charge (CHARACTER/WALKER vehicles only). Leap to Defend (1CP) or Into the Fray (2CP, cap 6", 6" targets). Gains Fights First <span class="pdf-ref">(15.11)</span>.</td></tr>
+                <tr><td><span class="keyword">Counter-offensive</span></td><td>After an enemy unit resolves attacks in opponent's Fight phase</td><td>One your eligible unit</td><td>2CP</td><td>Gains Fights First; must be your next unit selected to fight.</td></tr>
+            </table>
+            <div class="prob-panel">
+                <h3>Probability — Explosives stratagem <span class="pdf-ref">(15.05)</span></h3>
+                <p class="prob-note">Roll 6D6; each 4+ inflicts 1 MW on the target unit.</p>
+                <div id="obj-prob-explosives"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADVANCED -->
+    <div id="tables-adv" class="phase-tables">
+        <div class="panel">
+            <h2>Actions <span class="pdf-ref">(16)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Starting</b></td><td>Unit starts action when rules allow (often instead of moving/shooting/charging/fighting).</td></tr>
+                <tr><td><b>Completing</b></td><td>Resolve effect when action completes. Fails if unit moves (except pile-in/consolidation) or leaves battlefield.</td></tr>
+                <tr><td><b>Cannot start if</b></td><td>Not on battlefield; AIRCRAFT/FORTIFICATION; battle-shocked; OC 0 or ‘−’; engaged (except TITANIC); Advanced or fell back this turn; already started another action this turn <span class="pdf-ref">(16.01)</span>.</td></tr>
+                <tr><td><b>While performing</b></td><td>Not eligible to shoot or declare charge (TITANIC exceptions). Active actions fail if unit becomes battle-shocked.</td></tr>
+            </table>
+
+            <h2>Monsters &amp; Vehicles <span class="pdf-ref">(17)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Move through models</b></td><td>MON/Veh can move over INF/B/S models (not through).</td></tr>
+                <tr><td><b>FRAME</b></td><td>Some vehicles use FRAME for engagement/LoS instead of base.</td></tr>
+                <tr><td><b>Shooting while engaged</b></td><td>MON/Veh can shoot non-CQ weapons at engaged targets at −1 hit <span class="pdf-ref">(17.03)</span>.</td></tr>
+                <tr><td><b>Half-strength</b></td><td>Battle-shock: remaining Wounds ≤ 50% of starting W.</td></tr>
+            </table>
+
+            <h2>Transports — Embark <span class="pdf-ref">(18.02)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Embark</b></td><td>During move: unit wholly within 3" of transport, not set up this turn; capacity permitting.</td></tr>
+                <tr><td><b>Disembark</b></td><td>See Movement tab — Rapid/Tactical/Combat modes.</td></tr>
+                <tr><td><b>Firing Deck</b></td><td>Up to X embarked models shoot; while transport resolves its attacks, embarked units are not eligible to shoot <span class="pdf-ref">(24.14)</span>.</td></tr>
+            </table>
+
+            <h2>Attached Units <span class="pdf-ref">(19)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Targeting</b></td><td>Attached unit treated as one; use Bodyguard T for wound rolls. Allocate damage to Bodyguard models unless [PRECISION] targets visible CHARACTER <span class="pdf-ref">(19, 24.28)</span>.</td></tr>
+                <tr><td><b>Destroyed</b></td><td>When Bodyguard destroyed, Leader becomes separate unit.</td></tr>
+                <tr><td><b>Keywords</b></td><td>Unit has keywords of both Leader and Bodyguard.</td></tr>
+            </table>
+
+            <h2>Strategic Reserves <span class="pdf-ref">(20)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>Limit</b></td><td>Cannot exceed 50% of army points in Strategic Reserves.</td></tr>
+                <tr><td><b>Arrival</b></td><td>Turn 2+ via Ingress; &gt;8" from enemies; deployment zone restrictions Turn 2–3.</td></tr>
+                <tr><td><b>Aircraft</b></td><td>Must start in reserves; Hover for ground setup <span class="pdf-ref">(23)</span>.</td></tr>
+            </table>
+
+            <h2>Flying &amp; Aircraft <span class="pdf-ref">(21–23)</span></h2>
+            <table>
+                <tr><th>Rule</th><th>Detail</th></tr>
+                <tr><td><b>FLY</b></td><td>Ignore terrain movement penalties; move over models/terrain.</td></tr>
+                <tr><td><b>Surging</b></td><td>Some flyers use Surge moves instead of Normal moves <span class="pdf-ref">(22)</span>.</td></tr>
+                <tr><td><b>Aircraft</b></td><td>Start in reserves; cannot charge; Hover sets up on ground <span class="pdf-ref">(23)</span>.</td></tr>
+            </table>
+            <div class="prob-panel">
+                <h3>Probability — Feel No Pain <span class="pdf-ref">(06.03, 24.12)</span></h3>
+                <div id="adv-prob-fnp"></div>
+                <h3>Probability — Hazard rolls <span class="pdf-ref">(09, 18.03)</span></h3>
+                <div id="adv-prob-hazard"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROBABILITY -->
+    <div id="tables-prob" class="phase-tables">
+        <div class="panel">
+            <h2>Probability Reference</h2>
+            <div id="prob-ranges-legend"></div>
+            <p>Player-advantage percentages. Green ≥66.7%, amber 33.4–66.6%, red ≤33.3%. Matrix cells show <b>base % / +1 re-roll %</b> unless noted.</p>
+
+            <h3>Re-roll Rules <span class="pdf-ref">(15.02)</span></h3>
+            <table>
+                <tr><th>Re-roll type</th><th>Formula</th><th>Typical use</th></tr>
+                <tr><td><b>Single D6 (mandatory)</b></td><td>1 − (1 − p)²</td><td>Hit, wound, save, advance, hazard — Command Re-roll (must accept second result)</td></tr>
+                <tr><td><b>Single D6 (optional)</b></td><td>Player takes re-roll if beneficial</td><td><span class="keyword">[TWIN-LINKED]</span> wound re-roll — tables show mandatory maths as upper bound when always taken</td></tr>
+                <tr><td><b>2D6 both dice</b></td><td>1 − (1 − p)²</td><td>Charge roll — must re-roll both dice in full</td></tr>
+                <tr><td><b>2D6 one die</b></td><td>Optimal: re-roll lower die</td><td>Battle-shock / leadership — pick one die to re-roll</td></tr>
+            </table>
+            <div id="prob-reroll-table"></div>
+
+            <h3>Hit Roll Matrix <span class="pdf-ref">(05.01, 24.16)</span></h3>
+            <div id="prob-hit-matrix"></div>
+
+            <h3>Hit Modifier Legend</h3>
+            <table>
+                <tr><th>Modifier</th><th>Value</th><th>When</th></tr>
+                <tr><td><span class="keyword">[HEAVY]</span></td><td>+1 hit</td><td>Unengaged, not set up this turn, no model moved &gt;3"</td></tr>
+                <tr><td>Benefit of Cover</td><td>−1 BS</td><td>Target has cover or Stealth <span class="pdf-ref">(13.08, 24.33)</span></td></tr>
+                <tr><td>Plunging Fire</td><td>+1 BS</td><td>Attacker ≥3" elevated <span class="pdf-ref">(22.05)</span></td></tr>
+                <tr><td>Engaged MON/Veh target</td><td>−1 hit</td><td>Ranged vs engaged MON/Veh <span class="pdf-ref">(17.03)</span></td></tr>
+                <tr><td>Non-CQ weapon (CQ shoot)</td><td>−1 hit</td><td>Engaged MON/Veh <span class="pdf-ref">(10.06)</span></td></tr>
+                <tr><td><span class="keyword">[PSYCHIC]</span></td><td>ignore all</td><td>BS/WS and hit mods ignored</td></tr>
+                <tr><td>Hit modifier cap</td><td>2+ best / 6+ worst</td><td>Cumulative hit-roll modifiers on one roll <span class="pdf-ref">(05.01)</span></td></tr>
+            </table>
+
+            <h3>Wound Roll Matrix <span class="pdf-ref">(05.02)</span></h3>
+            <div id="prob-wound-matrix"></div>
+
+            <h3>Save Roll Matrix <span class="pdf-ref">(05.03)</span></h3>
+            <div id="prob-save-matrix"></div>
+
+            <h3>Leadership / Battle-shock (2D6) <span class="pdf-ref">(08.03)</span></h3>
+            <div id="prob-leadership-table"></div>
+
+            <h3>Charge Distance (2D6) <span class="pdf-ref">(11)</span></h3>
+            <div id="prob-charge-table"></div>
+
+            <h3>Advance Roll (M + D6) <span class="pdf-ref">(09.04)</span></h3>
+            <div id="prob-advance-table"></div>
+
+            <h3>Feel No Pain <span class="pdf-ref">(24.12)</span></h3>
+            <div id="prob-fnp-table"></div>
+
+            <h3>Special Rolls &amp; Indirect Fire <span class="pdf-ref">(10.07, 15)</span></h3>
+            <div id="prob-special-table"></div>
+
+            <h3>Combined Attack Probability (hit × wound × unsaved)</h3>
+            <div id="prob-combined-table"></div>
+        </div>
+    </div>
+
+    <!-- REFERENCE -->
+    <div id="tables-ref" class="phase-tables">
+        <div class="panel">
+            <h2>Core Rules Glossary</h2>
+            <table>
+                <tr><th>Term</th><th>Definition</th></tr>
+                <tr><td><b>Engagement Range</b></td><td>Within 2" horizontally and 5" vertically of an enemy model <span class="pdf-ref">(03.02)</span>.</td></tr>
+                <tr><td><b>Line of Sight</b></td><td>Can draw a 1 mm line from any part of one model to any part of another, ignoring models in the firing unit <span class="pdf-ref">(06.01)</span>.</td></tr>
+                <tr><td><b>Visible / Not Visible</b></td><td>A unit is Visible if LoS can be drawn and no rule (Obscuring, Hidden, Lone Operative, etc.) makes it Not Visible.</td></tr>
+                <tr><td><b>Critical Hit</b></td><td>Unmodified hit roll of 6. Triggers [SUSTAINED HITS], [LETHAL HITS], etc.</td></tr>
+                <tr><td><b>Critical Wound</b></td><td>Unmodified wound roll of 6 (or <span class="keyword">[ANTI-X Y+]</span>). Triggers [DEVASTATING WOUNDS], etc.</td></tr>
+                <tr><td><b>Half-strength</b></td><td>Infantry: ≤50% models remaining. Monsters/Vehicles: ≤50% starting Wounds remaining <span class="pdf-ref">(08.03)</span>.</td></tr>
+                <tr><td><b>Objective Control (OC)</b></td><td>Compare total OC of units within objective range (mission-defined; often 3"). Battle-shocked units contribute OC ‘−’ <span class="pdf-ref">(14)</span>.</td></tr>
+                <tr><td><b>SMOKE</b></td><td>Unit keyword required for <span class="keyword">Smokescreen</span> stratagem <span class="pdf-ref">(15.10)</span>.</td></tr>
+                <tr><td><b>Set Up / Reinforce</b></td><td>Units that arrive from Reserves or disembark are “set up this turn” — affects [HEAVY], Indirect Fire bands, etc.</td></tr>
+            </table>
+
+            <h2>PDF Section Index</h2>
+            <p class="pdf-ref">Cross-reference to <a href="eng_01-06_warhammer40k_new40k_core_rules-was6fbu1ix-hfewhmxyiy.pdf">Core Rules PDF</a> section numbers used in this reference.</p>
+            <table>
+                <tr><th>Section</th><th>Topic</th><th>Tab</th></tr>
+                <tr><td>01–06</td><td>Pre-game sequence</td><td>Master Loop</td></tr>
+                <tr><td>03</td><td>Coherency, Engagement Range</td><td>Movement, Glossary</td></tr>
+                <tr><td>04–06</td><td>Making Attacks, MW, FNP</td><td>Shooting, Fight</td></tr>
+                <tr><td>07</td><td>Battle rounds, turns, End of Turn</td><td>Master Loop, End Turn</td></tr>
+                <tr><td>08</td><td>Command phase, Battle-shock</td><td>Command</td></tr>
+                <tr><td>09</td><td>Movement, Advance, Fall Back</td><td>Movement</td></tr>
+                <tr><td>10</td><td>Shooting phase</td><td>Shooting</td></tr>
+                <tr><td>11</td><td>Charge phase</td><td>Charge</td></tr>
+                <tr><td>12</td><td>Fight phase</td><td>Fight</td></tr>
+                <tr><td>13</td><td>Terrain, visibility</td><td>Shooting</td></tr>
+                <tr><td>14</td><td>Objectives, scoring timing</td><td>Objectives, End Turn</td></tr>
+                <tr><td>15</td><td>Core Stratagems</td><td>Objectives &amp; Stratagems</td></tr>
+                <tr><td>16–23</td><td>Actions, MON/Veh, Transports, Reserves, Flyers</td><td>Advanced</td></tr>
+                <tr><td>24</td><td>Core abilities &amp; weapon keywords</td><td>Reference</td></tr>
+            </table>
+
+            <h2>Keyword Resolution Order</h2>
+            <p>When multiple rules apply to one attack, resolve in this order: <b>Determine Attacks</b> → <b>Hit Roll</b> (incl. Critical Hit) → <b>Wound Roll</b> (incl. Critical Wound) → <b>Allocate &amp; Save</b> → <b>Inflict Damage</b> → <b>Mortal Wounds</b> → <b>Feel No Pain</b>. Weapon keywords modify the step where they appear in the core rules <span class="pdf-ref">(04)</span>.</p>
+
+            <h2>Core Unit Abilities <span class="pdf-ref">(24)</span></h2>
+            <table>
+                <tr><th>Ability</th><th>Mechanic</th></tr>
+                <tr><td><b>Deep Strike</b></td><td>Set up arriving unit anywhere &gt;8" from enemies during Ingress <span class="pdf-ref">(24.08)</span>.</td></tr>
+                <tr><td><b>Infiltrators</b></td><td>Deploy anywhere &gt;8" from enemy deployment zone and enemies <span class="pdf-ref">(24.18)</span>.</td></tr>
+                <tr><td><b>Scouts / Scout Move</b></td><td>Before Turn 1, move up to X"; end &gt;8" from enemies <span class="pdf-ref">(24.30)</span>.</td></tr>
+                <tr><td><b>Stealth</b></td><td>Unit always has Benefit of Cover <span class="pdf-ref">(24.33)</span>.</td></tr>
+                <tr><td><b>Firing Deck X</b></td><td>Up to X embarked models can shoot from transport <span class="pdf-ref">(24.14)</span>.</td></tr>
+                <tr><td><b>Hover</b></td><td>Aircraft may set up on battlefield instead of reserves <span class="pdf-ref">(24.17)</span>.</td></tr>
+                <tr><td><b>Leader / Support</b></td><td>Attach to Bodyguard; form Attached unit <span class="pdf-ref">(19, 24.19)</span>.</td></tr>
+                <tr><td><b>Lone Operative</b></td><td>Cannot be targeted by ranged attacks beyond 12" <span class="pdf-ref">(24.24)</span>.</td></tr>
+                <tr><td><b>Super-Heavy Walker</b></td><td>Uses special engagement/movement rules <span class="pdf-ref">(24.32)</span>.</td></tr>
+                <tr><td><b>Duplicated Abilities</b></td><td>Same ability on multiple models: only apply once per unit <span class="pdf-ref">(24.02)</span>.</td></tr>
+                <tr><td><b>Feel No Pain X+</b></td><td>When wound lost, D6 X+ ignores it <span class="pdf-ref">(06.03)</span>.</td></tr>
+                <tr><td><b>Deadly Demise X</b></td><td>Destroyed: D6 6 = X MW to units within 6" <span class="pdf-ref">(06.04)</span>.</td></tr>
+            </table>
+
+            <h2>Rules FAQ Highlights <span class="pdf-ref">(Core Rules FAQ)</span></h2>
+            <table>
+                <tr><th>Question</th><th>Answer</th></tr>
+                <tr><td>Unit with no ranged weapons — eligible to shoot?</td><td>Yes (may matter for actions/other rules); it simply makes no ranged attacks.</td></tr>
+                <tr><td>[BLAST] vs engaged MON/Veh in CQ shooting?</td><td>No — BLAST cannot target engaged units.</td></tr>
+                <tr><td>[BLAST] at engaged MON/Veh from outside?</td><td>No — engaged units cannot be targeted by Normal/Assault; BLAST still blocked in CQ.</td></tr>
+            </table>
+
+            <h2>Weapon Keywords <span class="pdf-ref">(24.03–24.31)</span></h2>
+            <table>
+                <tr><th>Keyword</th><th>Mechanic</th></tr>
+                <tr><td><span class="keyword">[ANTI-X Y+]</span></td><td>Wound Y+ vs X = Critical Wound.</td></tr>
+                <tr><td><span class="keyword">[ASSAULT]</span></td><td>Fire after Advancing.</td></tr>
+                <tr><td><span class="keyword">[BLAST X]</span></td><td>+X attacks per 5 models in target.</td></tr>
+                <tr><td><span class="keyword">[CLEAVE X]</span></td><td>+X attacks per 5 models (single target).</td></tr>
+                <tr><td><span class="keyword">[CLOSE-QUARTERS]</span></td><td>Fire while engaged at engaged enemy.</td></tr>
+                <tr><td><span class="keyword">[DEVASTATING WOUNDS]</span></td><td>Crit wound = MW equal to D.</td></tr>
+                <tr><td><span class="keyword">[HAZARDOUS]</span></td><td>Post-attack hazard roll per weapon.</td></tr>
+                <tr><td><span class="keyword">[HEAVY]</span></td><td>+1 hit if unengaged, not set up this turn, no move &gt;3".</td></tr>
+                <tr><td><span class="keyword">[IGNORES COVER]</span></td><td>Target cannot claim cover.</td></tr>
+                <tr><td><span class="keyword">[INDIRECT FIRE]</span></td><td>No LoS; cover; no hit re-rolls.</td></tr>
+                <tr><td><span class="keyword">[LANCE]</span></td><td>+1 wound if charged.</td></tr>
+                <tr><td><span class="keyword">[LETHAL HITS]</span></td><td>Crit hit auto-wounds.</td></tr>
+                <tr><td><span class="keyword">[MELTA X]</span></td><td>+X D within half range.</td></tr>
+                <tr><td><span class="keyword">[ONE SHOT]</span></td><td>Once per battle.</td></tr>
+                <tr><td><span class="keyword">[PISTOL]</span></td><td>Legacy note: superseded by <span class="keyword">[CLOSE-QUARTERS]</span> for engaged shooting.</td></tr>
+                <tr><td><span class="keyword">[PRECISION]</span></td><td>Allocate to visible CHARACTER at allocation step.</td></tr>
+                <tr><td><span class="keyword">[PSYCHIC]</span></td><td>Ignore BS/WS/hit mods.</td></tr>
+                <tr><td><span class="keyword">[RAPID FIRE X]</span></td><td>+X attacks within half range.</td></tr>
+                <tr><td><span class="keyword">[SUSTAINED HITS X]</span></td><td>Crit = X extra hits.</td></tr>
+                <tr><td><span class="keyword">[TORRENT]</span></td><td>Auto-hit.</td></tr>
+                <tr><td><span class="keyword">[TWIN-LINKED]</span></td><td>Re-roll wounds.</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        Source: <a href="eng_01-06_warhammer40k_new40k_core_rules-was6fbu1ix-hfewhmxyiy.pdf">eng_01-06_warhammer40k_new40k_core_rules-was6fbu1ix-hfewhmxyiy.pdf</a> — Warhammer 40,000 11th Edition Core Rules · PDF section index on the <a href="#" onclick="switchTab('ref'); return false;">Reference</a> tab (sections 01–24).
+    </div>
+</div>
+
+<script>
+    const dotGraphs = {
+        main: `
+            digraph MainLoop {
+                rankdir=TB;
+                node [shape=box, style=filled, fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                edge [fontname="Helvetica", fontsize=9, color="#555555"];
+                BR_Start [label="Start of Battle Round", fillcolor="#90EE90", shape=hexagon];
+                BR_Faction [label="Resolve Army/Faction Rules", fillcolor="#DDA0DD", shape=hexagon];
+                SoT_Start [label="Start of Turn Step\\n(Resolve start-of-turn rules)", fillcolor="#ADD8E6"];
+                Player_Turn [label="Active Player Turn\\n(Command → Move → Shoot → Charge → Fight)", fillcolor="#ADD8E6"];
+                EoT_End [label="End of Player Turn\\n(End-of-turn scoring)", fillcolor="#ADD8E6"];
+                Logic_TurnCheck [label="Has opposing player\\ntaken their turn?", shape=diamond, fillcolor="#FFFFE0"];
+                BR_End [label="End of Battle Round\\n(Mission scoring again)", fillcolor="#90EE90", shape=hexagon];
+                Logic_RoundCheck [label="5 Battle Rounds\\ncompleted?", shape=diamond, fillcolor="#FFFFE0"];
+                Post_EndBattle [label="End Battle & Determine Victor", fillcolor="#FFE4E1"];
+                BR_Start -> BR_Faction -> SoT_Start -> Player_Turn -> EoT_End -> Logic_TurnCheck;
+                Logic_TurnCheck -> SoT_Start [label="No (Opponent's Turn)"];
+                Logic_TurnCheck -> BR_End [label="Yes"];
+                BR_End -> Logic_RoundCheck;
+                Logic_RoundCheck -> BR_Start [label="No"];
+                Logic_RoundCheck -> Post_EndBattle [label="Yes"];
+            }
+        `,
+        cmd: `
+            digraph CommandPhase {
+                rankdir=TB;
+                node [shape=box, style=filled, fillcolor="#ADD8E6", fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                Cmd_Start [label="Start of Command Phase"];
+                Cmd_GainCP [label="Gain Core CP\\n(Both players gain 1CP)", fillcolor="#FAFAD2"];
+                Cmd_BattleShock [label="Battle-Shock Step\\nEvery half-strength or shocked unit", fillcolor="#F08080", shape=hexagon];
+                Cmd_Abilities [label="Command Abilities"];
+                Cmd_End [label="End of Command Phase"];
+                Cmd_Start -> Cmd_GainCP -> Cmd_BattleShock -> Cmd_Abilities -> Cmd_End;
+            }
+        `,
+        mov: `
+            digraph MovementPhase {
+                rankdir=TB;
+                node [shape=box, style=filled, fillcolor="#ADD8E6", fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                Mov_Start [label="Start of Movement Phase"];
+                Mov_Select [label="Select Unit to Move"];
+                Mov_Type [label="Move Type:\\nNormal, Advance, Fall-back,\\nStationary, Embark, Disembark, Ingress", shape=hexagon, fillcolor="#DDA0DD"];
+                Mov_Modes [label="Constraints\\n(Coherency, Hazard, Disembark modes)", fillcolor="#FFFFE0"];
+                Mov_LoopCheck [label="More units?", shape=diamond, fillcolor="#FFFFE0"];
+                Mov_End [label="End of Movement Phase"];
+                Mov_Start -> Mov_Select -> Mov_Type -> Mov_Modes -> Mov_LoopCheck;
+                Mov_LoopCheck -> Mov_Select [label="Yes"];
+                Mov_LoopCheck -> Mov_End [label="No"];
+            }
+        `,
+        sht: `
+            digraph ShootingPhase {
+                rankdir=TB;
+                node [shape=box, style=filled, fillcolor="#ADD8E6", fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                Sht_Start [label="Start of Shooting Phase"];
+                Sht_Select [label="Select Eligible Unit"];
+                Sht_Type [label="Shooting Type:\\nNormal / Assault / CQ / Indirect", shape=hexagon, fillcolor="#DDA0DD"];
+                Sht_Weapons [label="Select Weapons"];
+                Sht_Targets [label="Select Targets\\n→ see Target Selection chart below", fillcolor="#FFF0F5"];
+                Sht_Atk_Seq [label="Resolve Attacks\\nHit → Wound → Save → Damage", fillcolor="#F08080"];
+                Sht_LoopCheck [label="More units?", shape=diamond, fillcolor="#FFFFE0"];
+                Sht_End [label="End of Shooting Phase"];
+                Sht_Start -> Sht_Select -> Sht_Type -> Sht_Weapons -> Sht_Targets -> Sht_Atk_Seq -> Sht_LoopCheck;
+                Sht_LoopCheck -> Sht_Select [label="Yes"];
+                Sht_LoopCheck -> Sht_End [label="No"];
+            }
+        `,
+        chg: `
+            digraph ChargePhase {
+                rankdir=TB;
+                node [shape=box, style=filled, fillcolor="#ADD8E6", fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                Chg_Start [label="Start of Charge Phase"];
+                Chg_Declare [label="Declare Charge\\n(Targets within 12\\")"];
+                Chg_Roll [label="Charge Roll (2D6)", fillcolor="#DDA0DD"];
+                Chg_Check [label="Reach ALL targets?", shape=diamond, fillcolor="#FFFFE0"];
+                Chg_Success [label="Charge OK\\nGain Fights First\\n(Crushing Impact?)"];
+                Chg_Fail [label="Failed — no move"];
+                Chg_LoopCheck [label="More units?", shape=diamond, fillcolor="#FFFFE0"];
+                Chg_End [label="End of Charge Phase\\n(Heroic Intervention)"];
+                Chg_Start -> Chg_Declare -> Chg_Roll -> Chg_Check;
+                Chg_Check -> Chg_Success [label="Yes"];
+                Chg_Check -> Chg_Fail [label="No"];
+                Chg_Success -> Chg_LoopCheck;
+                Chg_Fail -> Chg_LoopCheck;
+                Chg_LoopCheck -> Chg_Declare [label="Yes"];
+                Chg_LoopCheck -> Chg_End [label="No"];
+            }
+        `,
+        fgt: `
+            digraph FightPhase {
+                rankdir=TB;
+                node [shape=box, style=filled, fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                Fgt_Start [label="Start of Fight Phase", fillcolor="#ADD8E6"];
+                Fgt_PileIn [label="Pile In (optional)\\nActive player all units first", fillcolor="#FAFAD2"];
+                Fgt_FirstLoop [label="Fights First units\\nremaining?", shape=diamond, fillcolor="#FFFFE0"];
+                Fgt_Select_First [label="Alternate Fights First\\n(active player starts)", fillcolor="#FAFAD2"];
+                Fgt_Resolve [label="Normal / Overrun Fight\\nSelect Weapons → Targets\\nResolve Melee Attacks", fillcolor="#F08080"];
+                Fgt_RemLoop [label="Remaining combats\\nleft?", shape=diamond, fillcolor="#FFFFE0"];
+                Fgt_Select_Normal [label="Alternate Remaining\\nCombats", fillcolor="#FAFAD2"];
+                Fgt_Consol [label="Consolidate (optional)\\nActive consolidates all first", fillcolor="#FFFFE0"];
+                Fgt_End [label="End of Fight Phase", fillcolor="#ADD8E6"];
+                Fgt_Start -> Fgt_PileIn -> Fgt_FirstLoop;
+                Fgt_FirstLoop -> Fgt_Select_First [label="Yes"];
+                Fgt_FirstLoop -> Fgt_RemLoop [label="No"];
+                Fgt_Select_First -> Fgt_Resolve -> Fgt_FirstLoop;
+                Fgt_RemLoop -> Fgt_Select_Normal [label="Yes"];
+                Fgt_RemLoop -> Fgt_Consol [label="No"];
+                Fgt_Select_Normal -> Fgt_Resolve -> Fgt_FirstLoop [label="New Fights First?"];
+                Fgt_Select_Normal -> Fgt_RemLoop [label="No"];
+                Fgt_Consol -> Fgt_End;
+            }
+        `,
+        end: `
+            digraph EndTurn {
+                rankdir=TB;
+                node [shape=box, style=filled, fillcolor="#ADD8E6", fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                EoT_Start [label="Start End of Turn Step"];
+                EoT_General [label="1. General Rules"];
+                EoT_Mission [label="2. Mission Rules\\n(OC / VP — also end of phase)"];
+                EoT_Coherency [label="3. Regain Coherency"];
+                EoT_End [label="Player Turn Ends"];
+                EoT_Start -> EoT_General -> EoT_Mission -> EoT_Coherency -> EoT_End;
+            }
+        `,
+        target: `
+            digraph TargetSelection {
+                rankdir=TB;
+                node [shape=box, style=filled, fontname="Helvetica", fontsize=10, fontcolor="#1a1a1a", color="#555555"];
+                edge [fontname="Helvetica", fontsize=9];
+                TS_Start [label="For each weapon:\\npick candidate enemy unit", fillcolor="#ADD8E6"];
+                TS_Range [label="Within weapon range?", shape=diamond, fillcolor="#FFFFE0"];
+                TS_ShootType [label="Shooting type eligible?\\n(Normal / Assault / CQ / Indirect)", shape=hexagon, fillcolor="#DDA0DD"];
+                TS_Engaged [label="Engaged targeting OK\\n(BLAST cannot target engaged)", shape=diamond, fillcolor="#FFFFE0"];
+                TS_LoneOp [label="Lone Operative:\\ntarget within 12\\"?", shape=diamond, fillcolor="#FFF0F5"];
+                TS_LoS [label="Draw LoS (06.01)\\n1mm line, ignore same-unit models", fillcolor="#FFF0F5"];
+                TS_Solid [label="Solid (13.11):\\ngap <=3\\" blocks LoS?", shape=diamond, fillcolor="#FFF0F5"];
+                TS_Obscuring [label="Obscuring (13.10):\\nLoS crosses area?", shape=diamond, fillcolor="#FFF0F5"];
+                TS_Hidden [label="Hidden (13.09):\\nattacker beyond 15\\"?", shape=diamond, fillcolor="#FFF0F5"];
+                TS_Visible [label="Unit visible?", shape=diamond, fillcolor="#FFFFE0"];
+                TS_Indirect [label="Indirect shooting\\n[INDIRECT FIRE] weapon?", shape=diamond, fillcolor="#DDA0DD"];
+                TS_Invalid [label="Cannot select target", fillcolor="#FFE4E1"];
+                TS_Cover [label="Benefit of Cover?\\n(incl. Stealth) −1 BS", shape=diamond, fillcolor="#FFFFE0"];
+                TS_Plunging [label="Plunging Fire?\\n(22.05) +1 BS", shape=diamond, fillcolor="#FFFFE0"];
+                TS_Valid [label="Valid target\\n→ Attack sequence", fillcolor="#90EE90"];
+                TS_Start -> TS_Range;
+                TS_Range -> TS_Invalid [label="No"];
+                TS_Range -> TS_ShootType [label="Yes"];
+                TS_ShootType -> TS_Engaged;
+                TS_Engaged -> TS_Invalid [label="No"];
+                TS_Engaged -> TS_LoneOp [label="Yes"];
+                TS_LoneOp -> TS_Invalid [label="No (>12\\")"];
+                TS_LoneOp -> TS_LoS [label="Yes"];
+                TS_LoS -> TS_Solid;
+                TS_Solid -> TS_Invalid [label="Yes (blocked)"];
+                TS_Solid -> TS_Obscuring [label="No"];
+                TS_Obscuring -> TS_Invalid [label="Yes (not visible)"];
+                TS_Obscuring -> TS_Hidden [label="No"];
+                TS_Hidden -> TS_Invalid [label="Yes (not visible)"];
+                TS_Hidden -> TS_Visible [label="No (visible)"];
+                TS_Visible -> TS_Cover [label="Yes"];
+                TS_Visible -> TS_Indirect [label="No"];
+                TS_Indirect -> TS_Invalid [label="No"];
+                TS_Indirect -> TS_Cover [label="Yes"];
+                TS_Cover -> TS_Plunging -> TS_Valid;
+            }
+        `
+    };
+
+    const viz = new Viz();
+    const graphTabs = ['main', 'cmd', 'mov', 'sht', 'chg', 'fgt', 'end'];
+
+    function renderGraph(dotString, elementId) {
+        return viz.renderSVGElement(dotString).then(function (element) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+            element.style.maxWidth = '100%';
+            element.style.height = 'auto';
+            container.appendChild(element);
+        }).catch(function (error) {
+            console.error('Graph render error (' + elementId + '):', error);
+        });
+    }
+
+    const anchorTabMap = {
+        'main-': 'main', 'cmd-': 'cmd', 'mov-': 'mov', 'sht-': 'sht',
+        'chg-': 'chg', 'fgt-': 'fgt', 'end-': 'end'
+    };
+
+    function tabForAnchor(id) {
+        if (!id) return null;
+        const keys = Object.keys(anchorTabMap);
+        for (let i = 0; i < keys.length; i++) {
+            if (id.indexOf(keys[i]) === 0) return anchorTabMap[keys[i]];
+        }
+        return null;
+    }
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.tab-buttons button').forEach(function (b) { b.classList.remove('active'); });
+        document.getElementById('btn-' + tabId).classList.add('active');
+
+        document.querySelectorAll('.phase-tables').forEach(function (t) { t.classList.remove('active'); });
+        document.getElementById('tables-' + tabId).classList.add('active');
+
+        const graphEl = document.getElementById('graph-container');
+        const targetEl = document.getElementById('graph-target-selection');
+        const legendPanel = document.getElementById('legend-panel');
+
+        if (graphTabs.indexOf(tabId) !== -1 && dotGraphs[tabId]) {
+            graphEl.style.display = 'block';
+            if (legendPanel) legendPanel.classList.remove('hidden');
+            renderGraph(dotGraphs[tabId], 'graph-container');
+        } else {
+            graphEl.style.display = 'none';
+            if (legendPanel) legendPanel.classList.add('hidden');
+        }
+
+        if (tabId === 'sht') {
+            targetEl.classList.add('visible');
+            renderGraph(dotGraphs.target, 'graph-target-selection');
+        } else {
+            targetEl.classList.remove('visible');
+        }
+
+        if (typeof Probability !== 'undefined') {
+            Probability.renderForTab(tabId);
+        }
+
+        filterTables(document.getElementById('rules-search').value);
+    }
+
+    function filterTables(query) {
+        const q = query.trim().toLowerCase();
+        let firstMatchTab = null;
+
+        document.querySelectorAll('.phase-tables').forEach(function (tab) {
+            let tabHasMatch = !q;
+            const tabId = tab.id.replace('tables-', '');
+
+            tab.querySelectorAll('table').forEach(function (table) {
+                const rows = table.querySelectorAll('tr');
+                let visibleRows = 0;
+                rows.forEach(function (row, idx) {
+                    if (idx === 0) return;
+                    if (!q) {
+                        row.classList.remove('search-hidden');
+                        visibleRows++;
+                        return;
+                    }
+                    const text = row.textContent.toLowerCase();
+                    const match = text.indexOf(q) !== -1;
+                    row.classList.toggle('search-hidden', !match);
+                    if (match) visibleRows++;
+                });
+                if (q && visibleRows === 0) {
+                    table.classList.add('search-hidden-block');
+                } else {
+                    table.classList.remove('search-hidden-block');
+                }
+                if (visibleRows > 0) tabHasMatch = true;
+            });
+
+            tab.querySelectorAll('.flowchart-desc, .prob-panel, .panel').forEach(function (block) {
+                if (!q) {
+                    block.classList.remove('search-hidden-block');
+                    return;
+                }
+                const text = block.textContent.toLowerCase();
+                const match = text.indexOf(q) !== -1;
+                block.classList.toggle('search-hidden-block', !match);
+                if (match) tabHasMatch = true;
+            });
+
+            if (q) {
+                tab.classList.toggle('search-tab-hidden', !tabHasMatch);
+                if (tabHasMatch && !firstMatchTab) firstMatchTab = tabId;
+            } else {
+                tab.classList.remove('search-tab-hidden');
+            }
+        });
+
+        if (q && firstMatchTab) {
+            const active = document.querySelector('.phase-tables.active');
+            const activeId = active ? active.id.replace('tables-', '') : '';
+            const activeVisible = active && !active.classList.contains('search-tab-hidden');
+            if (!activeVisible) switchTab(firstMatchTab);
+        }
+
+        filterTabButtons(q);
+    }
+
+    function filterTabButtons(q) {
+        document.querySelectorAll('.tab-buttons button').forEach(function (btn) {
+            if (!q) {
+                btn.classList.remove('search-hidden-block');
+                return;
+            }
+            const tabId = btn.id.replace('btn-', '');
+            const tab = document.getElementById('tables-' + tabId);
+            btn.classList.toggle('search-hidden-block', tab && tab.classList.contains('search-tab-hidden'));
+        });
+    }
+
+    document.getElementById('rules-search').addEventListener('input', function (e) {
+        filterTables(e.target.value);
+    });
+
+    document.querySelectorAll('.phase-subnav a').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            const href = link.getAttribute('href');
+            if (!href || href.charAt(0) !== '#') return;
+            const id = href.slice(1);
+            const tabId = tabForAnchor(id);
+            if (tabId) {
+                e.preventDefault();
+                switchTab(tabId);
+                const target = document.getElementById(id);
+                if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    window.onload = function () {
+        switchTab('main');
+    };
+</script>
+
+</body>
+</html>
