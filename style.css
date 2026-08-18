@@ -516,10 +516,30 @@ input[type="checkbox"] {
   line-height: 1.4;
   font-weight: 600;
 }
+.sheet.text-sheet {
+  gap: 0.35rem;
+}
 .sheet.text-sheet .ability-body.is-hot {
-  font-size: clamp(1.05rem, 2vw, 1.28rem);
-  line-height: 1.4;
+  font-size: clamp(1.02rem, 1.8vw, 1.22rem);
+  line-height: 1.45;
   max-width: 48rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.player.show-controls .mini-sliders {
+  max-height: 16vh;
+  overflow: auto;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.player.show-controls .mini-sliders label {
+  min-width: 9.5rem;
+  flex: 1 1 9.5rem;
+  font-size: 0.78rem;
+  gap: 0.12rem;
 }
 .ability.is-hot {
   margin: 0.7rem 0;
