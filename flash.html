@@ -6,12 +6,12 @@
     <meta name="theme-color" content="#0c1014" />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>40k Flashcards</title>
-    <link rel="stylesheet" href="/style-b36f80c9c5f075dc.css" integrity="sha384-y96jqEfYypBjXEGPhljryVxa78wUoNNsKOjubzt5xPYZsfeVVFqJM1QbzJZ3GRQ8"/>
+    <link rel="stylesheet" href="/40kcheatsheet/style-b36f80c9c5f075dc.css" integrity="sha384-y96jqEfYypBjXEGPhljryVxa78wUoNNsKOjubzt5xPYZsfeVVFqJM1QbzJZ3GRQ8"/>
     
     
 <script type="module">
-import init, * as bindings from '/wh40k-flashcards-12d6f11185f7506b.js';
-const wasm = await init({ module_or_path: '/wh40k-flashcards-12d6f11185f7506b_bg.wasm' });
+import init, * as bindings from '/40kcheatsheet/wh40k-flashcards-4bb6e3e1fd6081f2.js';
+const wasm = await init({ module_or_path: '/40kcheatsheet/wh40k-flashcards-4bb6e3e1fd6081f2_bg.wasm' });
 
 
 window.wasmBindings = bindings;
@@ -26,6 +26,6 @@ dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;700&family=Syne:wght@700;800&display=swap"
       rel="stylesheet"
     />
-  <link rel="modulepreload" href="/wh40k-flashcards-12d6f11185f7506b.js" crossorigin="anonymous" integrity="sha384-uc1mtH9W8Dt7MwVW7jFCEA0qX73+z14gx3Urohaq+W9SDq0kNaNNNUvtSHvGWceL"><link rel="preload" href="/wh40k-flashcards-12d6f11185f7506b_bg.wasm" crossorigin="anonymous" integrity="sha384-jWJKCTL1qsoyOwJqf/20JrtgsGYyVj1JG3O0cUoh83SDCcmhB+pOBkiknvl9agkZ" as="fetch" type="application/wasm"></head>
+  <link rel="modulepreload" href="/40kcheatsheet/wh40k-flashcards-4bb6e3e1fd6081f2.js" crossorigin="anonymous" integrity="sha384-3+l97vs5sh09tKLiOePrOFZkWB9RZ8iQUGgreD2bTPmWsm++fwvluOqDLnRqq0B/"><link rel="preload" href="/40kcheatsheet/wh40k-flashcards-4bb6e3e1fd6081f2_bg.wasm" crossorigin="anonymous" integrity="sha384-Irk5Q2hTX/VxKy24YXFLJ3qi3AWRvKflEzMwU+O3adFi0ghl7x8X+dxsPMfDB32o" as="fetch" type="application/wasm"></head>
   <body></body>
 </html>
