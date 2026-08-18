@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0c1014" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <title>40k Flashcards</title>
+    <link rel="stylesheet" href="/style-b36f80c9c5f075dc.css" integrity="sha384-y96jqEfYypBjXEGPhljryVxa78wUoNNsKOjubzt5xPYZsfeVVFqJM1QbzJZ3GRQ8"/>
+    
+    
+<script type="module">
+import init, * as bindings from '/wh40k-flashcards-12d6f11185f7506b.js';
+const wasm = await init({ module_or_path: '/wh40k-flashcards-12d6f11185f7506b_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;700&family=Syne:wght@700;800&display=swap"
+      rel="stylesheet"
+    />
+  <link rel="modulepreload" href="/wh40k-flashcards-12d6f11185f7506b.js" crossorigin="anonymous" integrity="sha384-uc1mtH9W8Dt7MwVW7jFCEA0qX73+z14gx3Urohaq+W9SDq0kNaNNNUvtSHvGWceL"><link rel="preload" href="/wh40k-flashcards-12d6f11185f7506b_bg.wasm" crossorigin="anonymous" integrity="sha384-jWJKCTL1qsoyOwJqf/20JrtgsGYyVj1JG3O0cUoh83SDCcmhB+pOBkiknvl9agkZ" as="fetch" type="application/wasm"></head>
+  <body></body>
+</html>
